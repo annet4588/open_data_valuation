@@ -1,0 +1,12 @@
+name: open_data_valuation
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - streamlit
+      - pandas
+      - numpy
+      - scikit-learn
+      - matplotlib
+      - seaborn
+      - plotly
