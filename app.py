@@ -28,7 +28,7 @@ if uploaded_file:
 
         # Show Preview
         st.subheader("Data Preview")
-        st.dataframe(df.head(), use_container_width=True)
+        st.dataframe(df.head(), width="stretch")
     except Exception as e:
         st.error(f"Failed to reaf file: {e}")
 else:
