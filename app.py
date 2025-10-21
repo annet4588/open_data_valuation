@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from src.dataset_quality import DatasetQualityValuator
 
 # Streamlit setup
 st.set_page_config(page_title="Open Data Valuation", layout="wide")
@@ -29,6 +30,12 @@ if uploaded_file:
         # Show Preview
         st.subheader("Data Preview")
         st.dataframe(df.head(), width="stretch")
+        
+        # Evaluate dataset quality 
+        dq = DatasetQualityValuator(df)
+        quality = dq.score()
+        st.json(quality)
+        
     except Exception as e:
         st.error(f"Failed to reaf file: {e}")
 else:
