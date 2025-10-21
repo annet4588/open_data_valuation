@@ -1,4 +1,4 @@
-# Week 1 (9 September)
+## Week 1 (9 September)
 **Focus:** Scope and approach agreed  
 
 ---
