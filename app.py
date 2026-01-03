@@ -1,13 +1,19 @@
 import streamlit as st
 import pandas as pd
 from src.dataset_quality import DatasetQualityValuator
+import plotly.express as px
 
+# -----------------------------
 # Streamlit setup
-st.set_page_config(page_title="Open Data Valuation Tool", layout="wide")
-st.title("Open Data Valuation Dashboard")
+# -----------------------------
+st.set_page_config(page_title="Open Data Valuation Tool", layout="centered")
+st.title("Open Data Valuation Tool")
 st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
+# Load CSS from file
+with open("style.css") as css_file:
+    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
 # Value Dimentions
 value_dimensions = [
@@ -19,7 +25,9 @@ value_dimensions = [
     "Data Quality",
 ]
 
+# -----------------------------
 # 1. SELECT DATASET
+# -----------------------------
 st.header("1. Select Dataset")
 # File uploader
 uploaded_file = st.file_uploader(
@@ -42,9 +50,11 @@ if uploaded_file:
             st.error("Unsupported file type")
             st.stop()
 
+
         # Show Preview
         st.subheader("Data Preview")
-        st.dataframe(df.head(), width="stretch")
+        df.index = df.index+1
+        st.dataframe(df.head(), width=900)
 
         # Evaluate dataset quality
         st.subheader("Data Quality Overview:")
@@ -52,7 +62,7 @@ if uploaded_file:
         quality = dq.score()
         st.json(quality)
 
-        # 2. SELECT USE CASE
+        
         st.header("2. Select Use Case")
         # All Use Cases
         use_cases = [
@@ -61,6 +71,10 @@ if uploaded_file:
             "Public Engagement & Awareness",
             "Regulatory Compliance Monitoring",
             "Water Quality Risk Assessment",
+            "Environmental Impact Assessment",
+            "Service Planning & Improvement",
+            "Biodiversity & Habitat Protection",
+            "Climate Resilience & Adaptation"
         ]
         # User's selected use case
         selected_use_case = st.selectbox(
@@ -134,7 +148,18 @@ if uploaded_file:
                     max_possible = sum([5* weights[dim]for dim in value_dimensions])
                     final_score_percent = round((total_score/max_possible) * 100, 2)
                     
-                    st.metric("Weighted Valuation Score", f"{final_score_percent}%")
+                    # Find highest scoring diamentions
+                    max_score = max(weighted_scores.values())
+                    top_dim = [dim for dim, val in weighted_scores.items() if val == max_score]
+                    top_dim_str = ", ".join(top_dim)
+                    
+                    st.markdown(
+                        f"""
+                        **Weighted Valuation Score:** {final_score_percent}%\n  
+                        **Top Score Dimension:** {top_dim_str} value\n
+                        **Use Case:** {selected_use_case}
+                        """
+                    )
                     
                     # Show breakdown
                     st.dataframe(pd.DataFrame({
@@ -150,14 +175,90 @@ if uploaded_file:
                     max_possible = len(value_dimensions) * 5
                     final_score_percent = round((total_score / max_possible) * 100, 2)
                     
-                    st.metric("Valuation Scores no added weights", f"{final_score_percent}%")
+                    # Find highest scoring diamentions
+                    max_score = max(scores.values())
+                    top_dim = [dim for dim, val in scores.items() if val == max_score]
+                    top_dim_str = ", ".join(top_dim)
+                    
+                    st.markdown(
+                        f"""
+                        **Weighted Valuation Score**  
+                        {final_score_percent}%  
+                        Top Score Dimension: {top_dim_str} value\n
+                        Use Case: {selected_use_case}
+                        """
+                    )
                     
                     # Show breakdown
                     st.dataframe(pd.DataFrame({
                         "Dimension": value_dimensions,
                         "Score": [scores[dim] for dim in value_dimensions]
                     }))
-                
+                # Show graphs
+                if(st.button("Show graphs")):
+                    st.subheader("Visualisation of Scores")
+                    
+                    if apply_weights:
+                        # Weighted chart
+                        df_plot = pd.DataFrame({
+                            "Dimension": value_dimensions,
+                            "Score": [round(scores[dim] * weights[dim], 2) for dim in value_dimensions]
+                        })
+                        chart_title = "Weighted Value Dimension Scores"
+                        y_axis_label = "Weighted Score"
+                    else:
+                        # Non-Weighted chart
+                        df_plot = pd.DataFrame({
+                            "Dimension": value_dimensions,
+                            "Score": [round(scores[dim], 2) for dim in value_dimensions]
+                        })
+                        
+                        chart_title = "Value Dimension Scores"
+                        y_axis_label = "Score (1-5)"
+                    
+                    # Create a Bar chart
+                    fig = px.bar(
+                        df_plot,
+                        x="Dimension",
+                        y="Score",
+                        title=chart_title,
+                        color="Dimension", 
+                        color_discrete_sequence=px.colors.qualitative.Set2,
+                        text="Score"
+                    )
+                    # Format text on bars (always 2 decimals, placed outside the bar)
+                    fig.update_traces(texttemplate='%{y: .2f}', textfont_size=16)
+                    st.plotly_chart(fig, width="stretch")
+                    
+                    # Star rating function
+                    def star_rating(score, max_stars=5):
+                        filled = int(round(score))
+                        empty = max_stars - filled
+
+                        return "⭐" * filled + "☆" * empty
+                    
+                    # Build rating table
+                    rating = []
+                    for dim in value_dimensions:
+                        score = scores[dim]
+                        stars = star_rating(score)
+                        rating.append([dim, round(score, 2), stars])
+                    rating.sort(key=lambda x: x[1], reverse=True)
+
+                    rating_df = pd.DataFrame(
+                        rating,
+                        columns=["Dimension", "Score", "Stars"]
+                    )
+                    
+                    # Display
+                    st.markdown("## ⭐ Value Rating Summary")
+
+                    for i, row in rating_df.iterrows():
+                        st.markdown(
+                            f"<b>{row['Dimension']}</b>: {row['Stars']}",
+                            unsafe_allow_html=True
+                        )
+            
         else: 
             st.warning("You have to Select a Use Case to proceed.")
         
