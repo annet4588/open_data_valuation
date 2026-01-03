@@ -128,7 +128,7 @@ if uploaded_file:
         # Read from session_state
         selected_use_case = st.session_state["selected_use_case"]
         # Show selected use case
-        st.write("Selected Use Case: ", selected_use_case)
+        st.write(f"Selected Use Case: **{selected_use_case}**")
         
         # # For Future Development - addition Use Cases
         # st.header("2a. Additional Use Case")
@@ -136,30 +136,48 @@ if uploaded_file:
         # if add_second_use_case:
         #     second_use_case = st.selectbox("Select a second Use Case", use_cases, key="second_use_case")
 
-        # 3. SCORE VALUE DIMENTIONS
-        if selected_use_case !=None:
+        # -----------------------------
+        # 3. SCORE VALUE DIMENSIONS
+        # -----------------------------
+        if st.session_state["selected_use_case"]:
             st.header("3. Score Value Dimentions")
-            # Initialise scores
-            scores = {}
 
             for dim in value_dimensions:
-                st.markdown(f"{dim} Score")
+                st.markdown(f"**{dim}**")
                 st.caption(tooltips.get(dim, ""))
-                scores[dim] = st.slider("Score (1 = Low, 5 = High)", 1, 5, 3, key=dim)
+                
+                st.session_state["scores"][dim]= st.slider(
+                    "Score (1 = Low, 5 = High)", 
+                    1, 
+                    5, 
+                    st.session_state["scores"].get(dim, 3),
+                    key=f"score_{dim}")
+                
+            # Read scores from session_state
+            scores = st.session_state["scores"]
             
             # Add a button to confirm scores
             if st.button("Confirm Scores"):
                 st.session_state["scores_confirmed"] = True               
                 
-            if st.session_state.get("scores_confirmed"):                  
-                # 4. OPTIONAL WEIGHTING    
+            if st.session_state["scores_confirmed"]:                  
+                # -----------------------------
+                # 4. OPTIONAL WEIGHTING 
+                # -----------------------------  
                 st.header("4. Optional: Apply Weights to Dimensions")
-                apply_weights = st.checkbox("Apply custom weights?")
-                weights = {}
+                apply_weights = st.checkbox("Apply custom weights?", key="apply_weights")
                 
                 if apply_weights:
                     for dim in value_dimensions:
-                        weights[dim] = st.slider(f"{dim} Weight (0.0 - 1.0)", 0.0, 1.0, 0.5, key=f"weight_{dim}")
+                        st.session_state["weights"][dim] = st.slider(
+                            f"{dim} Weight (0.0 - 1.0)", 
+                            0.0, 
+                            1.0, 
+                            st.session_state["weights"].get(dim, 0.5),
+                            step=0.1,
+                            key=f"weight_{dim}")
+                        
+                    weights = st.session_state["weights"]
                 else:
                     weights = {dim: 1.0 for dim in value_dimensions}
                 
@@ -172,21 +190,28 @@ if uploaded_file:
                 if st.button("Calculate Scores"):
                    st.warning("Please confirm your scores before proceeding")
                    st.session_state["calculate_scores"] = False
-                        
-            # Show Results    
-            if st.session_state.get("calculate_scores") and st.session_state.get("scores_confirmed"):
+            
+            # -----------------------------
+            # 5. CALCULATE AND DISPLAY RESULTS
+            # -----------------------------        
+            if st.session_state["calculate_scores"] and st.session_state["scores_confirmed"]:
                 # 5. CALCULATE AND DISPLAY RESULTS
                 st.header("5. Valuation Score Summary")
+               
+                apply_weights = st.session_state.get("apply_weights", False)
+                weights = st.session_state.get(
+                    "weights", 
+                    {dim: 1.0 for dim in value_dimensions})
                 
                 if apply_weights:
                     # Calculate weighed scores
                     weighted_scores = {dim: scores[dim] * weights[dim] for dim in value_dimensions}
                     total_score = sum(weighted_scores.values())
-                    max_possible = sum([5* weights[dim]for dim in value_dimensions])
-                    final_score_percent = round((total_score/max_possible) * 100, 2)
+                    max_possible = sum(5* weights[dim]for dim in value_dimensions)
+                    final_score_percent = round((total_score/max_possible) * 100, 2) if max_possible else 0.0
                     
                     # Find highest scoring diamentions
-                    max_score = max(weighted_scores.values())
+                    max_score = max(weighted_scores.values()) if weighted_scores else 0
                     top_dim = [dim for dim, val in weighted_scores.items() if val == max_score]
                     top_dim_str = ", ".join(top_dim)
                     
@@ -210,10 +235,10 @@ if uploaded_file:
                     # Calculate Scores without applied weights
                     total_score = sum(scores.values())
                     max_possible = len(value_dimensions) * 5
-                    final_score_percent = round((total_score / max_possible) * 100, 2)
+                    final_score_percent = round((total_score / max_possible) * 100, 2) if max_possible else 0.0
                     
                     # Find highest scoring diamentions
-                    max_score = max(scores.values())
+                    max_score = max(scores.values()) if scores else 0
                     top_dim = [dim for dim, val in scores.items() if val == max_score]
                     top_dim_str = ", ".join(top_dim)
                     
@@ -236,6 +261,7 @@ if uploaded_file:
                     st.subheader("Visualisation of Scores")
                     
                     if apply_weights:
+                        weights = st.session_state.get("weights", {dim: 1.0 for dim in value_dimensions})
                         # Weighted chart
                         df_plot = pd.DataFrame({
                             "Dimension": value_dimensions,
@@ -264,8 +290,21 @@ if uploaded_file:
                         text="Score"
                     )
                     # Format text on bars (always 2 decimals, placed outside the bar)
-                    fig.update_traces(texttemplate='%{y: .2f}', textfont_size=16)
-                    st.plotly_chart(fig, width="stretch")
+                    fig.update_traces(
+                        texttemplate='%{y: .2f}', 
+                        textfont_size=16)
+                    
+                    fig.update_layout(yaxis_title=y_axis_label)
+        
+                    plotly_config ={
+                        "displayModeBar": False,
+                        "responsive": True,
+                        "scrollZoom": False,
+                        "doubleClick": False,
+                    }
+                    st.plotly_chart(
+                        fig, 
+                        config=plotly_config)
                     
                     # Star rating function
                     def star_rating(score, max_stars=5):
