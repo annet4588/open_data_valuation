@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 from src.dataset_quality import DatasetQualityValuator
 import plotly.express as px
+from pathlib import Path
 
+css_path = Path(__file__).parent / "style.css"
 # Chart colour scheme
 PASTEL_COLORS = px.colors.qualitative.Pastel
 
@@ -10,13 +12,12 @@ PASTEL_COLORS = px.colors.qualitative.Pastel
 # Streamlit setup
 # -----------------------------
 st.set_page_config(page_title="Open Data Valuation Tool", layout="centered")
+# Load CSS from file
+st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 st.title("Open Data Valuation Tool")
 st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
-# Load CSS from file
-with open("style.css") as css_file:
-    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
 # Value Dimentions
 value_dimensions = [

@@ -1,0 +1,22 @@
+/* Page background */
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(to bottom right, #dceefb, #f0f4f8);
+}
+
+/* Title */
+[data-testid="stMarkdownContainer"] h1 {
+    text-align: center;
+    color: #0f7ae4;
+    font-family: "Segoe UI", sans-serif;
+}
+/* h2 */
+[data-testid="stMarkdownContainer"] h2 {
+    text-align: left;
+    color: #333333;
+}
+/* Description text */
+[data-testid="stMarkdownContainer"] p {
+    text-align: center;
+    color: #333333;
+    font-style: italic;
+}
