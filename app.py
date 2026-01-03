@@ -3,6 +3,9 @@ import pandas as pd
 from src.dataset_quality import DatasetQualityValuator
 import plotly.express as px
 
+# Chart colour scheme
+PASTEL_COLORS = px.colors.qualitative.Pastel
+
 # -----------------------------
 # Streamlit setup
 # -----------------------------
@@ -223,7 +226,7 @@ if uploaded_file:
                         y="Score",
                         title=chart_title,
                         color="Dimension", 
-                        color_discrete_sequence=px.colors.qualitative.Set2,
+                        color_discrete_sequence=PASTEL_COLORS,
                         text="Score"
                     )
                     # Format text on bars (always 2 decimals, placed outside the bar)
