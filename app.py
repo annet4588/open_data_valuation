@@ -117,12 +117,16 @@ if uploaded_file:
         # -----------------------------
         st.header("2. Select Use Case")
  
-        # User's selected use case
-        selected_use_case = st.selectbox(
+        # User's selected use case using session_state key
+        st.selectbox(
             "Choose a Use Case", 
-            use_cases, index=None, 
-            placeholder="Select Use Case..."
+            use_cases, 
+            index=None, 
+            placeholder="Select Use Case...",
+            key="selected_use_case"
         )
+        # Read from session_state
+        selected_use_case = st.session_state["selected_use_case"]
         # Show selected use case
         st.write("Selected Use Case: ", selected_use_case)
         
