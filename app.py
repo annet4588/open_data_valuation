@@ -19,6 +19,26 @@ st.title("Open Data Valuation Tool")
 st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
+# -----------------------------
+# Session state initialisation
+# -----------------------------
+if "scores_confirmed" not in st.session_state:
+    st.session_state["scores_confirmed"] = False
+    
+if "calculate_scores" not in st.session_state:
+    st.session_state["calculate_scores"] = False
+    
+if "selected_use_case" not in st.session_state:
+    st.session_state["selected_use_case"] = None
+
+if "scores" not in st.session_state:
+    st.session_state["scores"] = {}
+    
+if "weights" not in st.session_state:
+    st.session_state["weights"] = {}
+    
+if "apply_weights" not in st.session_state:
+    st.session_state["apply_weights"] = False
 
 # Value Dimentions
 value_dimensions = [
@@ -52,13 +72,16 @@ tooltips = {
     "Policy Alignment": "1 - Not linked to any relevant policy or directive; 5 - Strongly aligned with current policy goals or legislations.",
     "Data Quality": "1 - Outdated, incomplete, or poorly documented data; 5 - High-quality, Structured Data with Strong Metadata and accesibility.",
 }
+
+
 # -----------------------------
 # 1. SELECT DATASET
 # -----------------------------
 st.header("1. Select Dataset")
 # File uploader
 uploaded_file = st.file_uploader(
-    "Upload a CSV or Excel file", type=["csv", "xlsx", "xls"]
+    "Upload a CSV or Excel file", 
+    type=["csv", "xlsx", "xls"]
 )
 
 # File handler
@@ -96,7 +119,9 @@ if uploaded_file:
  
         # User's selected use case
         selected_use_case = st.selectbox(
-            "Choose a Use Case", use_cases, index=None, placeholder="Select Use Case..."
+            "Choose a Use Case", 
+            use_cases, index=None, 
+            placeholder="Select Use Case..."
         )
         # Show selected use case
         st.write("Selected Use Case: ", selected_use_case)
