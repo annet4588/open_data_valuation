@@ -4,6 +4,7 @@ from src.dataset_quality import DatasetQualityValuator
 import plotly.express as px
 from pathlib import Path
 
+# Path to style.css file
 css_path = Path(__file__).parent / "style.css"
 # Chart colour scheme
 PASTEL_COLORS = px.colors.qualitative.Pastel
@@ -29,6 +30,28 @@ value_dimensions = [
     "Data Quality",
 ]
 
+# All Use Cases
+use_cases = [
+    "Planning & Development",
+    "Policy Monitoring & Reporting",
+    "Public Engagement & Awareness",
+    "Regulatory Compliance Monitoring",
+    "Water Quality Risk Assessment",
+    "Environmental Impact Assessment",
+    "Service Planning & Improvement",
+    "Biodiversity & Habitat Protection",
+    "Climate Resilience & Adaptation"
+]
+
+# Tooltips
+tooltips = {
+    "Economic": "1 - No Economic Benefit; 5 - Enables Cost Savings",
+    "Social": "1 - Little or No Impact on Public Engagement; 5 - Widely used for Inclusion, Transparency, Public Engagement.",
+    "Environmental": "1 - No environmental relevance or support; 5 - Essential for monitoring, conservation, or environmental planning.",
+    "Cultural": "1 - Not relevant to cultural or heritage aspects; 5 - Actively supports cultural preservation or heritage value.",
+    "Policy Alignment": "1 - Not linked to any relevant policy or directive; 5 - Strongly aligned with current policy goals or legislations.",
+    "Data Quality": "1 - Outdated, incomplete, or poorly documented data; 5 - High-quality, Structured Data with Strong Metadata and accesibility.",
+}
 # -----------------------------
 # 1. SELECT DATASET
 # -----------------------------
@@ -66,20 +89,11 @@ if uploaded_file:
         quality = dq.score()
         st.json(quality)
 
-        
+        # -----------------------------
+        # 2. SELECT USE CASE
+        # -----------------------------
         st.header("2. Select Use Case")
-        # All Use Cases
-        use_cases = [
-            "Planning & Development",
-            "Policy Monitoring & Reporting",
-            "Public Engagement & Awareness",
-            "Regulatory Compliance Monitoring",
-            "Water Quality Risk Assessment",
-            "Environmental Impact Assessment",
-            "Service Planning & Improvement",
-            "Biodiversity & Habitat Protection",
-            "Climate Resilience & Adaptation"
-        ]
+ 
         # User's selected use case
         selected_use_case = st.selectbox(
             "Choose a Use Case", use_cases, index=None, placeholder="Select Use Case..."
@@ -98,16 +112,6 @@ if uploaded_file:
             st.header("3. Score Value Dimentions")
             # Initialise scores
             scores = {}
-
-            # Tooltips
-            tooltips = {
-                "Economic": "1 - No Economic Benefit; 5 - Enables Cost Savings",
-                "Social": "1 - Little or No Impact on Public Engagement; 5 - Widely used for Inclusion, Transparency, Public Engagement.",
-                "Environmental": "1 - No environmental relevance or support; 5 - Essential for monitoring, conservation, or environmental planning.",
-                "Cultural": "1 - Not relevant to cultural or heritage aspects; 5 - Actively supports cultural preservation or heritage value.",
-                "Policy Alignment": "1 - Not linked to any relevant policy or directive; 5 - Strongly aligned with current policy goals or legislations.",
-                "Data Quality": "1 - Outdated, incomplete, or poorly documented data; 5 - High-quality, Structured Data with Strong Metadata and accesibility.",
-            }
 
             for dim in value_dimensions:
                 st.markdown(f"{dim} Score")
