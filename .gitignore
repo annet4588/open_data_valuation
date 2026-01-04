@@ -9,3 +9,5 @@ env/
 
 # Streamlit secrets 
 .streamlit/secrets.toml
+
+environment.yml
