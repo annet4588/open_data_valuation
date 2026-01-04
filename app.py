@@ -290,8 +290,42 @@ if st.session_state.get("calculate_scores"):
     # CASE B: WEIGHTS applied
     # -----------------------------  
     else:
-       pass 
+        weights = {
+           dim: st.session_state.get(
+               f"weight_{dataset_sig}_{dim}".replace(" ", "_").lower(), 0.5
+           )
+           for dim in value_dimensions
+        }
+       
+        # Calculated scores and weights
+        weighted_scores={
+            dim: (scores[dim] or 0) * weights[dim]
+            for dim in value_dimensions
+        }
         
+        total_score = sum(weighted_scores.values())
+        max_possible = sum(5 * weights[dim] for dim in value_dimensions)
+        final_score_percent = round((total_score / max_possible) * 100, 2)
+
+        max_score = max(weighted_scores.values())
+        top_dim = [dim for dim, val in weighted_scores.items() if val == max_score]
+        top_dim_str = ", ".join(top_dim)
+        
+        st.markdown(
+            f"""
+            **Weighted Valuation Score:** {final_score_percent}%  
+            **Top Score Dimension(s):** {top_dim_str}  
+            **Use Case:** {selected_use_case}
+            """
+        )
+        
+        weighted_df = pd.DataFrame({
+            "Dimension": value_dimensions,
+            "Stars (0-5)": [int(scores[d] or 0) for d in value_dimensions],
+            "Weights": [weights[d] for d in value_dimensions],
+            "Weighted Score": [round(weighted_scores[d],2) for d in value_dimensions],
+        })
+        st.dataframe(weighted_df, width="stretch")
    
     # Show graphs
     if(st.button("Show graphs")):
@@ -301,7 +335,7 @@ if st.session_state.get("calculate_scores"):
             # Weighted chart
             df_plot = pd.DataFrame({
                 "Dimension": value_dimensions,
-                "Score": [round(scores[dim] * weights[dim], 2) for dim in value_dimensions]
+                "Score": [round(weighted_scores[dim], 2) for dim in value_dimensions]
             })
             chart_title = "Weighted Value Dimension Scores"
             y_axis_label = "Weighted Score"
@@ -309,7 +343,7 @@ if st.session_state.get("calculate_scores"):
             # Non-Weighted chart
             df_plot = pd.DataFrame({
                 "Dimension": value_dimensions,
-                "Score": [round(scores[dim], 2) for dim in value_dimensions]
+                "Score": [round(float(scores[dim] or 0), 2) for dim in value_dimensions]
             })
             
             chart_title = "Value Dimension Scores"
