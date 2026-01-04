@@ -60,12 +60,12 @@ use_cases = [
 
 # Tooltips Star rating
 tooltips = {
-    "Economic": "⭐ None (0) = No economic impact · ⭐⭐⭐⭐⭐ (5) = Enables cost savings",
-    "Social": "⭐ None (0) = No public engagement impact · ⭐⭐⭐⭐⭐ (5) = High public value",
-    "Environmental": "⭐ None (0) = No environmental relevance · ⭐⭐⭐⭐⭐ (5) = Essential for monitoring",
-    "Cultural": "⭐ None (0) = No cultural relevance · ⭐⭐⭐⭐⭐ (5) = Supports heritage value",
-    "Policy Alignment": "⭐ None (0) = No policy alignment · ⭐⭐⭐⭐⭐ (5) = Strong policy alignment",
-    "Data Quality": "⭐ None (0) = Poor or unusable data · ⭐⭐⭐⭐⭐ (5) = High-quality, well-uctured Data with Strong Metadata and accesibility.",
+    "Economic": "☆ None (0) = No economic impact · ⭐⭐⭐⭐⭐ (5) = Enables cost savings",
+    "Social": "☆ None (0) = No public engagement impact · ⭐⭐⭐⭐⭐ (5) = High public value",
+    "Environmental": "☆ None (0) = No environmental relevance · ⭐⭐⭐⭐⭐ (5) = Essential for monitoring",
+    "Cultural": "☆ None (0) = No cultural relevance · ⭐⭐⭐⭐⭐ (5) = Supports heritage value",
+    "Policy Alignment": "☆ None (0) = No policy alignment · ⭐⭐⭐⭐⭐ (5) = Strong policy alignment",
+    "Data Quality": "☆ None (0) = Poor or unusable data · ⭐⭐⭐⭐⭐ (5) = High-quality, well-uctured Data with Strong Metadata and accesibility.",
 }
 
 # -----------------------------
@@ -192,7 +192,13 @@ if selected_use_case is None:
 # 3. SCORE VALUE DIMENSIONS
 # -----------------------------
 st.header("3. Score Value Dimentions")
+
 scores = {}
+
+#Add a button to update scores
+st.info("Select a star rating (0-5) for each value dimension below.")
+st.caption("Click **Update Scores** to reset all star ratings to zero")
+st.button("Update Scores", on_click=reset_ratings_only)
 
 dataset_sig = st.session_state["dataset_sig"]
 
@@ -207,8 +213,6 @@ for dim in value_dimensions:
         key=rating_key(dataset_sig, selected_use_case, dim) # dataset + use_case scoped key
     )
 
-#Add a button to update scores
-st.button("Update Scores", on_click=reset_ratings_only)
 # Add a button to confirm scores
 st.button("Confirm Scores", on_click=lambda: st.session_state.__setitem__("scores_confirmed", True))             
     
