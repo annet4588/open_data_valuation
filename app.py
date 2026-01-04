@@ -3,6 +3,7 @@ import pandas as pd
 from src.dataset_quality import DatasetQualityValuator
 import plotly.express as px
 from pathlib import Path
+import hashlib
 
 # Path to style.css file
 css_path = Path(__file__).parent / "style.css"
@@ -28,11 +29,6 @@ if "scores_confirmed" not in st.session_state:
 if "calculate_scores" not in st.session_state:
     st.session_state["calculate_scores"] = False
 
-# if "scores" not in st.session_state:
-#     st.session_state["scores"] = {}
-    
-# if "weights" not in st.session_state:
-#     st.session_state["weights"] = {}
     
 
 # Value Dimentions
@@ -68,8 +64,29 @@ tooltips = {
     "Data Quality": "1 - Outdated, incomplete, or poorly documented data; 5 - High-quality, Structured Data with Strong Metadata and accesibility.",
 }
 
+# -----------------------------
+# Helpers
+# -----------------------------
+# Signature for uploaded dataset, if different content with same name/size
+def file_signature(uploaded_file) -> str:
+    data = uploaded_file.getvalue()
+    h = hashlib.md5(data).hexdigest()
+    return f"{uploaded_file.name}-{uploaded_file.size}-{h}"
 
-
+# Called when dataset_uploader changes
+def reset_dependent_state():
+    st.session_state["scores_confirmed"] = False
+    st.session_state["calculate_scores"] = False
+    
+    st.session_state["selected_use_case"] = None
+    st.session_state["apply_weight"] = False
+    
+    # Clear old rating/weight keys
+    for k in list(st.session_state.keys()):
+        if k.startswith("rating_") or k.startswith("weight_"):
+            del st.session_state[k]
+    
+    
 # -----------------------------
 # 1. SELECT DATASET
 # -----------------------------
@@ -78,7 +95,8 @@ st.header("1. Select Dataset")
 uploaded_file = st.file_uploader(
     "Upload a CSV or Excel file", 
     type=["csv", "xlsx", "xls"],
-    key="dataset_uploader" # file uploader key
+    key="dataset_uploader", # file uploader key
+    on_change=reset_dependent_state # added the helper function on change
 )
 
 # File handler
