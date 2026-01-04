@@ -27,18 +27,13 @@ if "scores_confirmed" not in st.session_state:
     
 if "calculate_scores" not in st.session_state:
     st.session_state["calculate_scores"] = False
-    
-if "selected_use_case" not in st.session_state:
-    st.session_state["selected_use_case"] = None
 
-if "scores" not in st.session_state:
-    st.session_state["scores"] = {}
+# if "scores" not in st.session_state:
+#     st.session_state["scores"] = {}
     
-if "weights" not in st.session_state:
-    st.session_state["weights"] = {}
+# if "weights" not in st.session_state:
+#     st.session_state["weights"] = {}
     
-if "apply_weights" not in st.session_state:
-    st.session_state["apply_weights"] = False
 
 # Value Dimentions
 value_dimensions = [
@@ -74,6 +69,7 @@ tooltips = {
 }
 
 
+
 # -----------------------------
 # 1. SELECT DATASET
 # -----------------------------
@@ -81,7 +77,8 @@ st.header("1. Select Dataset")
 # File uploader
 uploaded_file = st.file_uploader(
     "Upload a CSV or Excel file", 
-    type=["csv", "xlsx", "xls"]
+    type=["csv", "xlsx", "xls"],
+    key="dataset_uploader" # file uploader key
 )
 
 # File handler
@@ -103,8 +100,9 @@ if uploaded_file:
 
         # Show Preview
         st.subheader("Data Preview")
-        df.index = df.index+1
-        st.dataframe(df.head(), width=900)
+        df_preview = df.copy()
+        df_preview.index = df.index+1
+        st.dataframe(df_preview.head(), width="stretch")
 
         # Evaluate dataset quality
         st.subheader("Data Quality Overview:")
@@ -118,17 +116,20 @@ if uploaded_file:
         st.header("2. Select Use Case")
  
         # User's selected use case using session_state key
-        st.selectbox(
+        selected_use_case = st.selectbox(
             "Choose a Use Case", 
             use_cases, 
             index=None, 
             placeholder="Select Use Case...",
-            key="selected_use_case"
+            key="selected_use_case" # widget key
         )
-        # Read from session_state
-        selected_use_case = st.session_state["selected_use_case"]
+        
         # Show selected use case
         st.write(f"Selected Use Case: **{selected_use_case}**")
+        
+        if selected_use_case is None:
+            st.warning("You have to Select a Use Case to proceed.")
+        
         
         # # For Future Development - addition Use Cases
         # st.header("2a. Additional Use Case")
@@ -165,7 +166,9 @@ if uploaded_file:
                 # 4. OPTIONAL WEIGHTING 
                 # -----------------------------  
                 st.header("4. Optional: Apply Weights to Dimensions")
-                apply_weights = st.checkbox("Apply custom weights?", key="apply_weights")
+                apply_weights = st.checkbox(
+                    "Apply custom weights?", 
+                    key="apply_weights") # widget key
                 
                 if apply_weights:
                     for dim in value_dimensions:
@@ -335,8 +338,7 @@ if uploaded_file:
                             unsafe_allow_html=True
                         )
             
-        else: 
-            st.warning("You have to Select a Use Case to proceed.")
+        
         
     except Exception as e:
         st.error(f"Failed to reaf file: {e}")
