@@ -22,6 +22,9 @@ st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
 
+if "ratings_nonce" not in st.session_state:
+    st.session_state["ratings_nonce"] = 0
+    
 # -----------------------------
 # Session state initialisation
 # -----------------------------
@@ -82,11 +85,31 @@ def reset_dependent_state():
     st.session_state["selected_use_case"] = None
     st.session_state["apply_weight"] = False
     
+    # Force remount star widgets (clear UI)
+    st.session_state["ratings_nonce"] +=1
+    
     # Clear old rating/weight keys
     for k in list(st.session_state.keys()):
         if k.startswith("rating_") or k.startswith("weight_"):
             del st.session_state[k]
+# Rating key
+def rating_key(dataset_sig: str, use_case: str, dim: str) -> str:
+    return(
+        f"rating_{st.session_state['ratings_nonce']}_{dataset_sig}_{use_case}_{dim}"
+        .replace(" ", "_")
+        .lower()
+    )
     
+# Reset Rating
+def reset_ratings_only():
+    st.session_state["scores_confirmed"] = False
+    st.session_state["calculate_scores"] = False
+    st.session_state["ratings_nonce"] +=1 # remount star components to defaultValue 0
+    
+def star_string(score: float, max_stars: int = 5) -> str:
+    s = int(round(score))
+    s = max(0, min(max_stars, s))
+    return "⭐" * s + "☆" * (max_stars - s)
     
 # -----------------------------
 # 1. SELECT DATASET
@@ -177,40 +200,40 @@ for dim in value_dimensions:
     st.markdown(f"**{dim}**")
     st.caption(tooltips.get(dim, ""))
     
-    st.session_state["scores"][dim]= st.slider(
-        "Score (1 = Low, 5 = High)", 
-        1, 
-        5, 
-        st.session_state["scores"].get(dim, 3),
-        key=f"score_{dim}")
-    
-# Read scores from session_state
-scores = st.session_state["scores"]
+    scores[dim] = st_star_rating(
+        label="",
+        maxValue =5,
+        defaultValue=0,
+        key=rating_key(dataset_sig, selected_use_case, dim) # dataset + use_case scoped key
+    )
 
+#Add a button to update scores
+st.button("Update Scores", on_click=reset_ratings_only)
 # Add a button to confirm scores
-if st.button("Confirm Scores"):
-    st.session_state["scores_confirmed"] = True               
+st.button("Confirm Scores", on_click=lambda: st.session_state.__setitem__("scores_confirmed", True))             
     
-if st.session_state["scores_confirmed"]:                  
-    # -----------------------------
-    # 4. OPTIONAL WEIGHTING 
-    # -----------------------------  
+                  
+# -----------------------------
+# 4. OPTIONAL WEIGHTING 
+# -----------------------------  
+if st.session_state["scores_confirmed"]:
     st.header("4. Optional: Apply Weights to Dimensions")
+    
     apply_weights = st.checkbox(
         "Apply custom weights?", 
         key="apply_weights") # widget key
     
     if apply_weights:
+        weights = {}
         for dim in value_dimensions:
-            st.session_state["weights"][dim] = st.slider(
+            weights[dim] = st.slider(
                 f"{dim} Weight (0.0 - 1.0)", 
                 0.0, 
                 1.0, 
-                st.session_state["weights"].get(dim, 0.5),
+                0.5, # default value
                 step=0.1,
-                key=f"weight_{dim}")
-            
-        weights = st.session_state["weights"]
+                key=f"weight_{dataset_sig}_{dim}".replace(" ", "_").lower()
+            )
     else:
         weights = {dim: 1.0 for dim in value_dimensions}
     
@@ -220,81 +243,57 @@ if st.session_state["scores_confirmed"]:
         
 else:
     # If user click Calculate button without Confirming
-    if st.button("Calculate Scores"):
-        st.warning("Please confirm your scores before proceeding")
-        st.session_state["calculate_scores"] = False
+    st.info("Click **Confirm Scores** to proceed to weighting and results.")
+    st.stop()
 
 # -----------------------------
 # 5. CALCULATE AND DISPLAY RESULTS
 # -----------------------------        
-if st.session_state["calculate_scores"] and st.session_state["scores_confirmed"]:
-    # 5. CALCULATE AND DISPLAY RESULTS
+if st.session_state.get("calculate_scores"):
     st.header("5. Valuation Score Summary")
     
     apply_weights = st.session_state.get("apply_weights", False)
-    weights = st.session_state.get(
-        "weights", 
-        {dim: 1.0 for dim in value_dimensions})
     
-    if apply_weights:
-        # Calculate weighed scores
-        weighted_scores = {dim: scores[dim] * weights[dim] for dim in value_dimensions}
-        total_score = sum(weighted_scores.values())
-        max_possible = sum(5* weights[dim]for dim in value_dimensions)
-        final_score_percent = round((total_score/max_possible) * 100, 2) if max_possible else 0.0
+    # -----------------------------
+    # CASE A: No WEIGHTS, STAR only results
+    # -----------------------------    
+    if not apply_weights:
+        total_stars= sum(scores.values())
+        max_possible=len(value_dimensions)*5
+        final_score_percent=round((total_stars/max_possible)*100, 2)
         
-        # Find highest scoring diamentions
-        max_score = max(weighted_scores.values()) if weighted_scores else 0
-        top_dim = [dim for dim, val in weighted_scores.items() if val == max_score]
-        top_dim_str = ", ".join(top_dim)
+        max_score=max(scores.values())
+        top_dim=[dim for dim, val in scores.items() if val ==max_score]
+        top_dim_str=", ".join(top_dim)
         
         st.markdown(
             f"""
-            **Weighted Valuation Score:** {final_score_percent}%\n  
-            **Top Score Dimension:** {top_dim_str} value\n
+            **Valuation Score (Star-Based):** {final_score_percent}%  
+            **Top Score Dimension(s):** {top_dim_str}  
             **Use Case:** {selected_use_case}
             """
         )
         
-        # Show breakdown
-        st.dataframe(pd.DataFrame({
+        # Star only breakdown
+        star_df=pd.DataFrame({
             "Dimension": value_dimensions,
-            "Score": [scores[dim] for dim in value_dimensions],
-            "Weight": [weights[dim] for dim in value_dimensions],
-            "Weighted Score": [weighted_scores[dim] for dim in value_dimensions]
-        }))
-    
+            "Stars (0-5)": [int(scores[d] or 0) for d in value_dimensions]
+        })
+        
+        st.dataframe(star_df, width="stretch")
+        
+    # -----------------------------
+    # CASE B: WEIGHTS applied
+    # -----------------------------  
     else:
-        # Calculate Scores without applied weights
-        total_score = sum(scores.values())
-        max_possible = len(value_dimensions) * 5
-        final_score_percent = round((total_score / max_possible) * 100, 2) if max_possible else 0.0
+       pass 
         
-        # Find highest scoring diamentions
-        max_score = max(scores.values()) if scores else 0
-        top_dim = [dim for dim, val in scores.items() if val == max_score]
-        top_dim_str = ", ".join(top_dim)
-        
-        st.markdown(
-            f"""
-            **Weighted Valuation Score**  
-            {final_score_percent}%  
-            Top Score Dimension: {top_dim_str} value\n
-            Use Case: {selected_use_case}
-            """
-        )
-        
-        # Show breakdown
-        st.dataframe(pd.DataFrame({
-            "Dimension": value_dimensions,
-            "Score": [scores[dim] for dim in value_dimensions]
-        }))
+   
     # Show graphs
     if(st.button("Show graphs")):
         st.subheader("Visualisation of Scores")
         
         if apply_weights:
-            weights = st.session_state.get("weights", {dim: 1.0 for dim in value_dimensions})
             # Weighted chart
             df_plot = pd.DataFrame({
                 "Dimension": value_dimensions,
@@ -310,7 +309,7 @@ if st.session_state["calculate_scores"] and st.session_state["scores_confirmed"]
             })
             
             chart_title = "Value Dimension Scores"
-            y_axis_label = "Score (1-5)"
+            y_axis_label = "Score (0-5 Stars)"
         
         # Create a Bar chart
         fig = px.bar(
@@ -337,38 +336,27 @@ if st.session_state["calculate_scores"] and st.session_state["scores_confirmed"]
         }
         st.plotly_chart(
             fig, 
-            config=plotly_config)
-        
-        # Star rating function
-        def star_rating(score, max_stars=5):
-            filled = int(round(score))
-            empty = max_stars - filled
-
-            return "⭐" * filled + "☆" * empty
+            config=plotly_config
+            )
         
         # Build rating table
-        rating = []
+        rating_rows = []
         for dim in value_dimensions:
-            score = scores[dim]
-            stars = star_rating(score)
-            rating.append([dim, round(score, 2), stars])
-        rating.sort(key=lambda x: x[1], reverse=True)
-
+            s = int(scores[dim] or 0)
+            rating_rows.append([dim, s, star_string(s)])
+           
         rating_df = pd.DataFrame(
-            rating,
-            columns=["Dimension", "Score", "Stars"]
+            rating_rows,
+            columns=["Dimension", "Stars (0-5)", "Stars"]
         )
+        rating_df = rating_df.sort_values(by="Stars (0-5)", ascending=False)
         
         # Display
         st.markdown("## ⭐ Value Rating Summary")
 
-        for i, row in rating_df.iterrows():
+        for _, row in rating_df.iterrows():
             st.markdown(
-                f"<b>{row['Dimension']}</b>: {row['Stars']}",
-                unsafe_allow_html=True
+                f"**{row['Dimension']}**: {row['Stars']}"
             )
         
         
-        
-
-
