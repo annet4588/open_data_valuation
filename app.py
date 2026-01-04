@@ -217,7 +217,7 @@ for dim in value_dimensions:
     st.markdown(f"**{dim}**")
     st.caption(tooltips.get(dim, ""))
 
-    col_star, col_btn = st.columns([4, 1], vertical_alignment="center")
+    col_star, col_btn = st.columns([9, 1], vertical_alignment="center")
 
     with col_star:
         scores[dim] = st_star_rating(
