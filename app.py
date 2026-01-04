@@ -24,7 +24,7 @@ st.markdown(
 
 if "ratings_nonce" not in st.session_state:
     st.session_state["ratings_nonce"] = 0
-    
+       
 # -----------------------------
 # Session state initialisation
 # -----------------------------
@@ -65,7 +65,7 @@ tooltips = {
     "Environmental": "☆ None (0) = No environmental relevance · ⭐⭐⭐⭐⭐ (5) = Essential for monitoring",
     "Cultural": "☆ None (0) = No cultural relevance · ⭐⭐⭐⭐⭐ (5) = Supports heritage value",
     "Policy Alignment": "☆ None (0) = No policy alignment · ⭐⭐⭐⭐⭐ (5) = Strong policy alignment",
-    "Data Quality": "☆ None (0) = Poor or unusable data · ⭐⭐⭐⭐⭐ (5) = High-quality, well-uctured Data with Strong Metadata and accesibility.",
+    "Data Quality": "☆ None (0) = Poor or unusable data · ⭐⭐⭐⭐⭐ (5) = High-quality Metadata and accesibility",
 }
 
 # -----------------------------
@@ -83,7 +83,7 @@ def reset_dependent_state():
     st.session_state["calculate_scores"] = False
     
     st.session_state["selected_use_case"] = None
-    st.session_state["apply_weight"] = False
+    st.session_state["apply_weights"] = False
     
     # Force remount star widgets (clear UI)
     st.session_state["ratings_nonce"] +=1
@@ -94,11 +94,22 @@ def reset_dependent_state():
             del st.session_state[k]
 # Rating key
 def rating_key(dataset_sig: str, use_case: str, dim: str) -> str:
+    n_all = st.session_state["ratings_nonce"]
+    n_dim = st.session_state["dim_nonce"].get(dim, 0)
     return(
-        f"rating_{st.session_state['ratings_nonce']}_{dataset_sig}_{use_case}_{dim}"
+        f"rating_{n_all}_{n_dim}_{dataset_sig}_{use_case}_{dim}"
         .replace(" ", "_")
         .lower()
     )
+# Initialise per dimension nonce to allow reset each dimension individually
+if "dim_nonce" not in st.session_state:
+    st.session_state["dim_nonce"] = {d: 0 for d in value_dimensions}
+    
+# Reset one dimension
+def reset_one_dimension(dim: str):
+    st.session_state["scores_confirmed"] = False
+    st.session_state["calculate_scores"] = False
+    st.session_state["dim_nonce"][dim] = st.session_state["dim_nonce"].get(dim, 0) + 1
     
 # Reset Rating
 def reset_ratings_only():
@@ -205,13 +216,25 @@ dataset_sig = st.session_state["dataset_sig"]
 for dim in value_dimensions:
     st.markdown(f"**{dim}**")
     st.caption(tooltips.get(dim, ""))
-    
-    scores[dim] = st_star_rating(
-        label="",
-        maxValue =5,
-        defaultValue=0,
-        key=rating_key(dataset_sig, selected_use_case, dim) # dataset + use_case scoped key
-    )
+
+    col_star, col_btn = st.columns([4, 1], vertical_alignment="center")
+
+    with col_star:
+        scores[dim] = st_star_rating(
+            label="",
+            maxValue=5,
+            defaultValue=0,
+            key=rating_key(dataset_sig, selected_use_case, dim),
+        )
+
+    with col_btn:
+        st.button(
+            "Reset",
+            key=f"reset_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower(),
+            on_click=reset_one_dimension,
+            args=(dim,),
+        )
+
 
 # Add a button to confirm scores
 st.button("Confirm Scores", on_click=lambda: st.session_state.__setitem__("scores_confirmed", True))             
