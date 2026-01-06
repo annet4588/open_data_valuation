@@ -21,6 +21,31 @@ st.title("Open Data Valuation Tool")
 st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
+# Instructions
+with st.expander("ℹ️ **How to use this tool** (Instructions)", expanded = False):
+    st.markdown("""
+**Step 1 — Upload a dataset**  
+Upload a CSV/XLSX/XLS file. A preview and a data quality overview will be shown.
+
+**Step 2 — Choose a use case**  
+Select the use case that best matches how the dataset will be used.
+
+**Step 3 — Rate each value dimension (0–5 stars)**  
+Give a rating for each dimension (Economic, Social, Environmental, Cultural, Policy Alignment, Data Quality).  
+Use **Reset** to clear a single dimension or **Update Scores** to reset all.
+
+**Step 4 — Optional: Apply weights**  
+Tick **Apply custom weights** if some dimensions matter more than others for your use case.  
+Weights range from **0.0 (not important)** to **1.0 (very important)**.
+
+**Step 5 — Calculate scores**  
+Click **Calculate Scores** to see the final valuation score and the top dimension(s).  
+Click **Show graphs** to view charts and a value rating summary.
+
+**How “Top dimension(s)” works**  
+- If weights are OFF: top dimensions are those with the highest star rating.  
+- If weights are ON: top dimensions are those with the highest **(stars × weight)** score.
+""")
 
 if "ratings_nonce" not in st.session_state:
     st.session_state["ratings_nonce"] = 0
