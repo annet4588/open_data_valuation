@@ -400,24 +400,74 @@ if st.session_state.get("calculate_scores"):
             config=plotly_config
             )
         
+        # -----------------------------
         # Build rating table
+        # -----------------------------   
         rating_rows = []
+        
         for dim in value_dimensions:
-            s = int(scores[dim] or 0)
-            rating_rows.append([dim, s, star_string(s)])
+            stars = int(scores[dim] or 0)
+            
+            # Base row
+            row = {
+                "Dimension": dim,
+                "Stars (0-5)": stars,
+                "Stars": star_string(stars)
+            }
+            
+            # Apply weighted score if chosen
+            if apply_weights:
+                w = float(weights.get(dim, 0.5)) # fallback
+                row["Weight"] = w
+                row["Weighted Score"] = round(stars * w, 2)
+                
+            rating_rows.append(row)
            
-        rating_df = pd.DataFrame(
-            rating_rows,
-            columns=["Dimension", "Stars (0-5)", "Stars"]
-        )
-        rating_df = rating_df.sort_values(by="Stars (0-5)", ascending=False)
+        rating_df = pd.DataFrame(rating_rows)
         
-        # Display
-        st.markdown("## ⭐ Value Rating Summary")
+        # Check if empty
+        if rating_df.empty:
+            st.warning("No rating data available.")
+        else:
+            # ----------------------------- 
+            # Sort table for display            
+            # ----------------------------- 
+            sort_col = "Weighted Score" if apply_weights else "Stars (0-5)"
+            rating_df = rating_df.sort_values(by=sort_col, ascending=False)
+            
+            # ----------------------------- 
+            # Display summary
+            # ----------------------------- 
+            st.markdown("## ⭐ Value Rating Summary")
+            for _, row in rating_df.iterrows():
+                if apply_weights:
+                    st.markdown(
+                        f"**{row['Dimension']}**: {row['Stars']} "                   
+                        )
+                else:
+                    st.markdown(f"**{row['Dimension']}**:{row['Stars']}")
+                    
+            # -----------------------------         
+            # Tags - top dimention(s)
+            # no weights - top by Stars
+            # weights - top by weited score (stars * weight)
+            # ----------------------------- 
+            score_col = "Weighted Score" if apply_weights else "Stars (0-5)"            
+            top_score = rating_df[score_col].max()
+            
+            top_dimensions = rating_df[rating_df[score_col] == top_score]["Dimension"].tolist()
+            
 
-        for _, row in rating_df.iterrows():
+            tags_html = "".join(
+                f'<div class="oval-tag"> {dim}</div>' 
+                for dim in top_dimensions
+                )
             st.markdown(
-                f"**{row['Dimension']}**: {row['Stars']}"
+            f'## 🏷️ Tags <div class="tag-container">{tags_html}</div>',
+            unsafe_allow_html=True
             )
+
+
+            
         
-        
+             
