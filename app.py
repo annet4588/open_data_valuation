@@ -227,7 +227,7 @@ if selected_use_case is None:
 # -----------------------------
 # 3. SCORE VALUE DIMENSIONS
 # -----------------------------
-st.header("3. Score Value Dimentions")
+st.header("3. Score Value Dimensions")
 
 scores = {}
 
