@@ -479,8 +479,10 @@ if st.session_state.get("calculate_scores"):
             # ----------------------------- 
             score_col = "Weighted Score" if apply_weights else "Stars (0-5)"            
             top_score = rating_df[score_col].max()
-            
-            top_dimensions = rating_df[rating_df[score_col] == top_score]["Dimension"].tolist()
+            top_dimensions = []
+            # Do not display tags if the score is 0
+            if top_score > 0:
+               top_dimensions = rating_df[rating_df[score_col] == top_score]["Dimension"].tolist()
             
 
             tags_html = "".join(
