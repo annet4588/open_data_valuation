@@ -22,7 +22,7 @@ st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
 # Instructions
-with st.expander("ℹ️ **How to use this tool** (Instructions)", expanded = False):
+with st.expander("ℹ️ **How to use this Tool** —  Click to see how it works  👆", expanded = False):
     st.markdown("""
 **Step 1 — Upload a dataset**  
 Upload a CSV/XLSX/XLS file. A preview and a data quality overview will be shown.
