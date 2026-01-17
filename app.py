@@ -9,8 +9,9 @@ import hashlib
 from streamlit_star_rating import st_star_rating
 import uuid
 
-st.write("Supabase URL loaded:", bool(st.secrets.get("SUPABASE_URL")))
-st.write("Supabase key loaded:", bool(st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")))
+## Debug checks (confirms Supabase secrets are loaded at runtime)
+# st.write("Supabase URL loaded:", bool(st.secrets.get("SUPABASE_URL")))
+# st.write("Supabase key loaded:", bool(st.secrets.get("SUPABASE_SERVICE_ROLE_KEY")))
 
 
 # Path to style.css file
