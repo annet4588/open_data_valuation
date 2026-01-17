@@ -1,3 +1,5 @@
+from src.storage import save_valuation
+from datetime import datetime, timezone
 import streamlit as st
 import pandas as pd
 from src.dataset_quality import DatasetQualityValuator
@@ -5,6 +7,8 @@ import plotly.express as px
 from pathlib import Path
 import hashlib
 from streamlit_star_rating import st_star_rating
+import uuid
+
 
 # Path to style.css file
 css_path = Path(__file__).parent / "style.css"
@@ -59,6 +63,9 @@ if "scores_confirmed" not in st.session_state:
 if "calculate_scores" not in st.session_state:
     st.session_state["calculate_scores"] = False
 
+# Prevent duplicate db inserts when Streamlit reruns
+if "saved_submit_id" not in st.session_state:
+    st.session_state["saved_submit_id"] = None
 
 # Value Dimentions
 value_dimensions = [
@@ -292,6 +299,7 @@ if st.session_state["scores_confirmed"]:
     # Add button Calculate Scores
     if st.button("Calculate Scores"):
         st.session_state["calculate_scores"] = True
+        st.session_state["submit_id"] = str(uuid.uuid4())
         
 else:
     # If user click Calculate button without Confirming
@@ -317,6 +325,23 @@ if st.session_state.get("calculate_scores"):
         max_score=max(scores.values())
         top_dim=[dim for dim, val in scores.items() if val ==max_score]
         top_dim_str=", ".join(top_dim)
+        
+        # Payload
+        payload = {
+            "submit_id": st.session_state["submit_id"],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "dataset_sig": st.session_state["dataset_sig"],
+            "use_case": st.session_state["selected_use_case"],
+            "apply_weights": False,
+            "stars": {d: int(scores[d] or 0) for d in value_dimensions},
+            "weights": {d: 1.0 for d in value_dimensions},
+            "final_score_percent": float(final_score_percent)
+        }
+        # Track last saved submittion to prevent duplicate writes
+        if payload["submit_id"] and payload["submit_id"] != st.session_state["saved_submit_id"]:
+           save_valuation(payload)
+           st.session_state["saved_submit_id"] = payload["submit_id"]
+           st.success("Results saved successfully!")
         
         st.markdown(
             f"""
@@ -358,6 +383,24 @@ if st.session_state.get("calculate_scores"):
         max_score = max(weighted_scores.values())
         top_dim = [dim for dim, val in weighted_scores.items() if val == max_score]
         top_dim_str = ", ".join(top_dim)
+        
+        # Payload with weights
+        payload = {
+            "submit_id": st.session_state["submit_id"],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "dataset_sig": st.session_state["dataset_sig"],
+            "use_case": st.session_state["selected_use_case"],
+            "apply_weights": True,
+            "stars": {d: int(scores[d] or 0) for d in value_dimensions},
+            "weights": weights,
+            "final_score_percent": float(final_score_percent),
+        }
+        # Track last saved submittion to prevent duplicate writes
+        if payload["submit_id"] and payload["submit_id"] != st.session_state["saved_submit_id"]:
+            save_valuation(payload)
+            st.session_state["saved_submit_id"] = payload["submit_id"]
+            st.success("Results saved successfully!")
+        
         
         st.markdown(
             f"""
