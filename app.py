@@ -30,6 +30,16 @@ st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
 # Instructions
+st.markdown(
+    """
+    <p style='text-align: center; color: red;'>
+        Takes less than 5 minutes to complete
+    </p>
+    
+    <h2 style='text-align: center; '>Instructions:</h2>
+    """,
+    unsafe_allow_html=True
+)
 with st.expander(
     "ℹ️ **How to use this Tool** —  Click to see how it works  👆", expanded=False
 ):
