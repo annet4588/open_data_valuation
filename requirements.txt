@@ -5,4 +5,4 @@ scikit-learn
 plotly
 openpyxl
 st-star-rating
-psycopg2-binary
+supabase
