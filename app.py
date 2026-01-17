@@ -339,10 +339,12 @@ if st.session_state.get("calculate_scores"):
         }
         # Track last saved submittion to prevent duplicate writes
         if payload["submit_id"] and payload["submit_id"] != st.session_state["saved_submit_id"]:
-           save_valuation(payload)
-           st.session_state["saved_submit_id"] = payload["submit_id"]
-           st.success("Results saved successfully!")
-        
+            try:
+                save_valuation(payload)
+                st.session_state["saved_submit_id"] = payload["submit_id"]
+                st.success("Results saved successfully!")
+            except Exception as e:
+                st.error(f"Couldn't save results to the database: {e}")
         st.markdown(
             f"""
             **Valuation Score (Star-Based):** {final_score_percent}%  
@@ -397,9 +399,12 @@ if st.session_state.get("calculate_scores"):
         }
         # Track last saved submittion to prevent duplicate writes
         if payload["submit_id"] and payload["submit_id"] != st.session_state["saved_submit_id"]:
-            save_valuation(payload)
-            st.session_state["saved_submit_id"] = payload["submit_id"]
-            st.success("Results saved successfully!")
+            try:               
+                save_valuation(payload)
+                st.session_state["saved_submit_id"] = payload["submit_id"]
+                st.success("Results saved successfully!")
+            except Exception as e:
+                st.error(f"Couldn't save results to the database: {e}")
         
         
         st.markdown(

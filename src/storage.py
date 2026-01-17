@@ -12,12 +12,8 @@ def get_conn():
     # - In local development, secrets can be read from .streamlit/secrets.toml
     
     # try to read db URL from environment variables (CLoud)
-    db_url = os.environ.get("DATABASE_URL")
-    
-    if not db_url:
-        # Fallback for local development using .streamlit/secrets.toml
-        db_url=st.secrets.get("DATABASE_URL", None)
-    # If db URL not configured
+    db_url = st.secrets.get("DATABASE_URL") or os.environ.get("DATABASE_URL")
+
     if not db_url:
         raise RuntimeError("DATABASE_URL is not set (add it to Streamlit Secrets).")
     return psycopg2.connect(db_url)
