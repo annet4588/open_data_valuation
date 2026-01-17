@@ -98,12 +98,30 @@ use_cases = [
 
 # Tooltips Star rating
 tooltips = {
-    "Economic": "☆ None (0) = No economic impact · ⭐⭐⭐⭐⭐ (5) = Enables cost savings",
-    "Social": "☆ None (0) = No public engagement impact · ⭐⭐⭐⭐⭐ (5) = High public value",
-    "Environmental": "☆ None (0) = No environmental relevance · ⭐⭐⭐⭐⭐ (5) = Essential for monitoring",
-    "Cultural": "☆ None (0) = No cultural relevance · ⭐⭐⭐⭐⭐ (5) = Supports heritage value",
-    "Policy Alignment": "☆ None (0) = No policy alignment · ⭐⭐⭐⭐⭐ (5) = Strong policy alignment",
-    "Data Quality": "☆ None (0) = Poor or unusable data · ⭐⭐⭐⭐⭐ (5) = High-quality Metadata and accesibility",
+    "Economic": (
+        "☆ None (0) = No economic benefit from use · " 
+        "⭐⭐⭐⭐⭐ (5) = Enables cost reduction, efficiency gains, or avoided expenditure"
+        ),
+    "Social": (
+        "☆ None (0) = No social benefit from use · " 
+        "⭐⭐⭐⭐⭐ (5) = Improves wellbeing, access, or public outcomes through use of the data"
+        ),
+    "Environmental": (
+        "☆ None (0) = No practical environmental application · "
+        "⭐⭐⭐⭐⭐ (5) = Enables environmental performance improvement or risk mitigation"
+        ) ,
+    "Cultural": (
+        "☆ None (0) = No cultural or heritage benefit from use · "
+        "⭐⭐⭐⭐⭐ (5) = Supports cultural heritage, identity, or place-based outcomes"
+        ) ,
+    "Policy Alignment": (
+        "☆ None (0) = Not used in policy or statutory contexts · "
+        "⭐⭐⭐⭐⭐ (5) = Critical for policy development, delivery, or regulatory decision-making"
+        )  ,
+    "Data Quality": (
+        "☆ None (0) = Data quality prevents effective use · "
+        "⭐⭐⭐⭐⭐ (5) = FAIR-aligned, findable, accessible, interoperable and reusable data"
+        ) ,
 }
 
 
