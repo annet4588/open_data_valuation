@@ -90,12 +90,10 @@ use_cases = [
     "Planning & Development",
     "Policy Monitoring & Reporting",
     "Public Engagement & Awareness",
-    "Regulatory Compliance Monitoring",
-    "Water Quality Risk Assessment",
-    "Environmental Impact Assessment",
+    "Statutory Requirements: Regulatory Compliance Monitoring",
+    "Impact Assessment",
     "Service Planning & Improvement",
-    "Biodiversity & Habitat Protection",
-    "Climate Resilience & Adaptation",
+    "Management and monitoring",
 ]
 
 # Tooltips Star rating
