@@ -429,7 +429,7 @@ if st.session_state.get("calculate_scores"):
     else:
         weights = {
             dim: st.session_state.get(
-                f"weight_{dataset_sig}_{dim}".replace(" ", "_").lower(), 0.5
+                f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower(), 0.5
             )
             for dim in value_dimensions
         }
