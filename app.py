@@ -199,8 +199,23 @@ def reset_ratings_only():
     st.session_state["scores_confirmed"] = False
     st.session_state["calculate_scores"] = False
     st.session_state["saved_submit_id"] = None
-    st.session_state["ratings_nonce"] += 1  # remount star components to defaultValue 0
+    # Force remount star widgets (clear UI)
+    st.session_state["ratings_nonce"] += 1
 
+    # Clear old rating/weight keys
+    for k in list(st.session_state.keys()):
+        if k.startswith("rating_") or k.startswith("weight_"):
+            del st.session_state[k]
+            
+# Reset Use Case
+def reset_on_use_case_change():
+    st.session_state["scores_confirmed"] = False
+    st.session_state["calculate_scores"] = False
+    st.session_state["saved_submit_id"] = None
+    st.session_state["latest_payload"] = None
+    st.session_state["submit_id"] = None
+    st.session_state["rating_nonce"] +=1 # remount star widget - so previous rating don't appear
+    
 def star_string(score: float, max_stars: int = 5) -> str:
     s = int(round(score))
     s = max(0, min(max_stars, s))
@@ -268,6 +283,7 @@ selected_use_case = st.selectbox(
     index=None,
     placeholder="Select Use Case...",
     key="selected_use_case",  
+    on_change=reset_on_use_case_change,
 )
 
 # Show selected use case
