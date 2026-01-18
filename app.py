@@ -30,12 +30,13 @@ st.markdown(
     "Use this Tool to assess the value of open datasets based on strategic dimentions."
 )
 # Instructions
-st.markdown(
+st.info(
     """
-    <p style='text-align: center; color: red;'>
-        Takes less than 5 minutes to complete
-    </p>
-    
+    Takes less than **5 minutes** to complete
+    """
+)
+st.markdown(
+    """    
     <h2 style='text-align: center; '>Instructions:</h2>
     """,
     unsafe_allow_html=True
@@ -134,7 +135,6 @@ tooltips = {
         ) ,
 }
 
-
 # -----------------------------
 # Helpers
 # -----------------------------
@@ -161,7 +161,6 @@ def reset_dependent_state():
         if k.startswith("rating_") or k.startswith("weight_"):
             del st.session_state[k]
 
-
 # Rating key
 def rating_key(dataset_sig: str, use_case: str, dim: str) -> str:
     n_all = st.session_state["ratings_nonce"]
@@ -170,11 +169,9 @@ def rating_key(dataset_sig: str, use_case: str, dim: str) -> str:
         " ", "_"
     ).lower()
 
-
 # Initialise per dimension nonce to allow reset each dimension individually
 if "dim_nonce" not in st.session_state:
     st.session_state["dim_nonce"] = {d: 0 for d in value_dimensions}
-
 
 # Reset one dimension
 def reset_one_dimension(dim: str):
@@ -182,19 +179,16 @@ def reset_one_dimension(dim: str):
     st.session_state["calculate_scores"] = False
     st.session_state["dim_nonce"][dim] = st.session_state["dim_nonce"].get(dim, 0) + 1
 
-
 # Reset Rating
 def reset_ratings_only():
     st.session_state["scores_confirmed"] = False
     st.session_state["calculate_scores"] = False
     st.session_state["ratings_nonce"] += 1  # remount star components to defaultValue 0
 
-
 def star_string(score: float, max_stars: int = 5) -> str:
     s = int(round(score))
     s = max(0, min(max_stars, s))
     return "⭐" * s + "☆" * (max_stars - s)
-
 
 # -----------------------------
 # 1. SELECT DATASET
@@ -249,14 +243,15 @@ st.json(quality)
 # 2. SELECT USE CASE
 # -----------------------------
 st.header("2. Select Use Case")
+st.info("Select the **Use Case** that best reflects how this dataset is primarily used.")
 
 # User's selected use case using session_state key
 selected_use_case = st.selectbox(
-    "Choose a Use Case",
+    "",
     use_cases,
     index=None,
     placeholder="Select Use Case...",
-    key="selected_use_case",  # widget key
+    key="selected_use_case",  
 )
 
 # Show selected use case
@@ -281,8 +276,16 @@ st.header("3. Score Value Dimensions")
 scores = {}
 
 # Add a button to update scores
-st.info("Select a star rating (0-5) for each value dimension below.")
-st.caption("Click **Update Scores** to reset all star ratings to zero")
+st.info(
+        """
+        Select a **star rating (0-5)** for each value dimension below.
+
+        Use **Reset** to clear a single dimension.  
+        Use **Update Scores** to reset all star ratings to zero.
+        """
+)
+
+# st.caption("Click **Update Scores** to reset all star ratings to zero")
 st.button("Update Scores", on_click=reset_ratings_only)
 
 dataset_sig = st.session_state["dataset_sig"]
@@ -324,9 +327,16 @@ st.button(
 # -----------------------------
 if st.session_state["scores_confirmed"]:
     st.header("4. Optional: Apply Weights to Dimensions")
-
+    
+    st.info(
+        """
+        **Optional step** — leave unchecked to continue with equal weighting across all dimensions.
+       
+        When you're finished scoring, click **Calculate Scores** to proceed.
+        """
+    )   
     apply_weights = st.checkbox(
-        "Apply custom weights?", key="apply_weights"
+        "Apply custom weights?", key="apply_weights" 
     )  # widget key
 
     if apply_weights:
