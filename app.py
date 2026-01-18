@@ -508,13 +508,19 @@ if st.session_state.get("calculate_scores"):
     # Save results to database only if the user clicks "Save Results"
     # Prevents duplicate saves on reruns and ensure re calculations don't overwrite stored results
     st.divider()
-    st.info("When you're happy with the results, click **Save Results** to store them.")
-    
+    # Check if the current valuation has been saved
     already_saved =(
-        st.session_state.get("latest_payload") is not None
-        and st.session_state.get("saved_submit_id") 
-        == st.session_state.get("latest_payload", {}).get("submit_id")
+    st.session_state.get("latest_payload") is not None
+    and st.session_state.get("saved_submit_id") 
+    == st.session_state.get("latest_payload", {}).get("submit_id")
     )
+    
+    # Display message depending on status: success message - if results saved; guidance message - if not saved yet
+    if already_saved:
+        st.success("Results saved successfully!")
+    else:
+        st.info("When you're happy with the results, click **Save Results** to store them.")
+    
     # Button before save "Save Results" and after - "Saved"
     button_label = "Saved" if already_saved else "Save Results"
     if st.button(button_label, disabled=already_saved):
