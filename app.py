@@ -76,15 +76,26 @@ if "ratings_nonce" not in st.session_state:
 # -----------------------------
 # Session state initialisation
 # -----------------------------
+# Tracks if the user confirmed the star ratings
 if "scores_confirmed" not in st.session_state:
     st.session_state["scores_confirmed"] = False
 
+# Indicates if the user clicked "Calculate Scores"
 if "calculate_scores" not in st.session_state:
     st.session_state["calculate_scores"] = False
+
+# Unique identifier for the current valuation run   
+if "submit_id" not in st.session_state:
+    st.session_state["submit_id"] = None
 
 # Prevent duplicate db inserts when Streamlit reruns
 if "saved_submit_id" not in st.session_state:
     st.session_state["saved_submit_id"] = None
+    
+# Holds the most recent calculated valuation payload
+# Allows results to be re calculated, and only saved the user clicks "Save Results"    
+if "latest_payload" not in st.session_state:
+    st.session_state["latest_payload"] = None
 
 # Value Dimentions
 value_dimensions = [
@@ -152,6 +163,9 @@ def reset_dependent_state():
 
     st.session_state["selected_use_case"] = None
     st.session_state["apply_weights"] = False
+    st.session_state["submit_id"] = None
+    st.session_state["saved_submit_id"] = None
+    st.session_state["latest_payload"] = None
 
     # Force remount star widgets (clear UI)
     st.session_state["ratings_nonce"] += 1
@@ -177,12 +191,14 @@ if "dim_nonce" not in st.session_state:
 def reset_one_dimension(dim: str):
     st.session_state["scores_confirmed"] = False
     st.session_state["calculate_scores"] = False
+    st.session_state["saved_submit_id"] = None
     st.session_state["dim_nonce"][dim] = st.session_state["dim_nonce"].get(dim, 0) + 1
 
 # Reset Rating
 def reset_ratings_only():
     st.session_state["scores_confirmed"] = False
     st.session_state["calculate_scores"] = False
+    st.session_state["saved_submit_id"] = None
     st.session_state["ratings_nonce"] += 1  # remount star components to defaultValue 0
 
 def star_string(score: float, max_stars: int = 5) -> str:
@@ -386,7 +402,6 @@ if st.session_state.get("calculate_scores"):
         # Payload
         payload = {
             "submit_id": st.session_state["submit_id"],
-            "created_at": datetime.now(timezone.utc).isoformat(),
             "dataset_sig": st.session_state["dataset_sig"],
             "use_case": st.session_state["selected_use_case"],
             "apply_weights": False,
@@ -394,17 +409,10 @@ if st.session_state.get("calculate_scores"):
             "weights": {d: 1.0 for d in value_dimensions},
             "final_score_percent": float(final_score_percent),
         }
-        # Track last saved submittion to prevent duplicate writes
-        if (
-            payload["submit_id"]
-            and payload["submit_id"] != st.session_state["saved_submit_id"]
-        ):
-            try:
-                save_valuation(payload)
-                st.session_state["saved_submit_id"] = payload["submit_id"]
-                st.success("Results saved successfully!")
-            except Exception as e:
-                st.error(f"Couldn't save results to the database: {e}")
+        
+        # Store payload so it can be saved only when the user clicks "save results"
+        st.session_state["latest_payload"] = payload
+
         st.markdown(
             f"""
             **Valuation Score (Star-Based):** {final_score_percent}%  
@@ -450,7 +458,6 @@ if st.session_state.get("calculate_scores"):
         # Payload with weights
         payload = {
             "submit_id": st.session_state["submit_id"],
-            "created_at": datetime.now(timezone.utc).isoformat(),
             "dataset_sig": st.session_state["dataset_sig"],
             "use_case": st.session_state["selected_use_case"],
             "apply_weights": True,
@@ -458,17 +465,9 @@ if st.session_state.get("calculate_scores"):
             "weights": weights,
             "final_score_percent": float(final_score_percent),
         }
-        # Track last saved submittion to prevent duplicate writes
-        if (
-            payload["submit_id"]
-            and payload["submit_id"] != st.session_state["saved_submit_id"]
-        ):
-            try:
-                save_valuation(payload)
-                st.session_state["saved_submit_id"] = payload["submit_id"]
-                st.success("Results saved successfully!")
-            except Exception as e:
-                st.error(f"Couldn't save results to the database: {e}")
+        
+        # Store payload
+        st.session_state["latest_payload"] = payload
 
         st.markdown(
             f"""
@@ -489,6 +488,25 @@ if st.session_state.get("calculate_scores"):
             }
         )
         st.dataframe(weighted_df, width="stretch")
+
+    # Save results to database only if the user clicks "Save Results"
+    # Prevents duplicate saves on reruns and ensure re calculations don't overwrite stored results
+    st.divider()
+    if st.button("Save Results"):
+        payload = st.session_state.get("latest_payload")
+        if not payload:
+            st.warning("No results to save yet.")
+        elif payload.get("submit_id") == st.session_state.get("saved_submit_id"):
+            st.info("These results have already been saved.")
+        else:
+            payload["created_at"] = datetime.now(timezone.utc).isoformat()
+            try:
+                save_valuation(payload)
+                st.session_state["saved_submit_id"] = payload["submit_id"]
+                st.success("Results saved successfully!")
+            except Exception as e:
+                st.error(f"Couldn't save results to the database: {e}")
+                
 
     # Show graphs
     if st.button("Show graphs"):
