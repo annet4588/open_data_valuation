@@ -348,7 +348,7 @@ if st.session_state["scores_confirmed"]:
                 1.0,
                 0.5,  # default value
                 step=0.1,
-                key=f"weight_{dataset_sig}_{dim}".replace(" ", "_").lower(),
+                key=f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower(),
             )
     else:
         weights = {dim: 1.0 for dim in value_dimensions}
