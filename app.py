@@ -214,7 +214,7 @@ def reset_on_use_case_change():
     st.session_state["saved_submit_id"] = None
     st.session_state["latest_payload"] = None
     st.session_state["submit_id"] = None
-    st.session_state["rating_nonce"] +=1 # remount star widget - so previous rating don't appear
+    st.session_state["ratings_nonce"] +=1 # remount star widget - so previous rating don't appear
     
 def star_string(score: float, max_stars: int = 5) -> str:
     s = int(round(score))
@@ -508,6 +508,7 @@ if st.session_state.get("calculate_scores"):
     # Save results to database only if the user clicks "Save Results"
     # Prevents duplicate saves on reruns and ensure re calculations don't overwrite stored results
     st.divider()
+    st.info("When you’re happy with the results, click **Save Results** to store them.")
     if st.button("Save Results"):
         payload = st.session_state.get("latest_payload")
         if not payload:
