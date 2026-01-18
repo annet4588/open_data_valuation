@@ -508,22 +508,28 @@ if st.session_state.get("calculate_scores"):
     # Save results to database only if the user clicks "Save Results"
     # Prevents duplicate saves on reruns and ensure re calculations don't overwrite stored results
     st.divider()
-    st.info("When you’re happy with the results, click **Save Results** to store them.")
-    if st.button("Save Results"):
+    st.info("When you're happy with the results, click **Save Results** to store them.")
+    
+    already_saved =(
+        st.session_state.get("latest_payload") is not None
+        and st.session_state.get("saved_submit_id") 
+        == st.session_state.get("latest_payload", {}).get("submit_id")
+    )
+    # Button before save "Save Results" and after - "Saved"
+    button_label = "Saved" if already_saved else "Save Results"
+    if st.button(button_label, disabled=already_saved):
         payload = st.session_state.get("latest_payload")
         if not payload:
             st.warning("No results to save yet.")
-        elif payload.get("submit_id") == st.session_state.get("saved_submit_id"):
-            st.info("These results have already been saved.")
         else:
             payload["created_at"] = datetime.now(timezone.utc).isoformat()
             try:
                 save_valuation(payload)
                 st.session_state["saved_submit_id"] = payload["submit_id"]
                 st.success("Results saved successfully!")
+                st.rerun() #refresh UI to get button disabled
             except Exception as e:
-                st.error(f"Couldn't save results to the database: {e}")
-                
+                st.error(f"Couldn't save results to the database: {e}")         
 
     # Show graphs
     if st.button("Show graphs"):
