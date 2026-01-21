@@ -80,3 +80,7 @@ The valuation methodology consists of the following steps:
 4. Run the Streamlit app
    streamlit run app.py
 
+## Licensing
+
+This repository is currently not publicly licensed.
+Intellectual property is owned by the author.
