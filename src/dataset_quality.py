@@ -12,7 +12,7 @@ class DatasetQualityValuator:
             return {
                 "rows": 0,
                 "cols": 0,
-                "missing_cells": 0,
+                "missing_cell_values": 0,
                 "missing_ratio": 0.0,
                 "duplicates": 0,
                 "empty_columns": 0,
@@ -23,8 +23,8 @@ class DatasetQualityValuator:
         total_cells = int(self.df.size)
 
         # Missing values
-        missing_cells = int(self.df.isna().sum().sum())
-        missing_ratio = float(missing_cells / total_cells) if total_cells else 0.0
+        missing_cell_values = int(self.df.isna().sum().sum())
+        missing_ratio = float(missing_cell_values / total_cells) if total_cells else 0.0
 
         # Duplicate rows
         duplicates = int(self.df.duplicated().sum())
@@ -38,7 +38,7 @@ class DatasetQualityValuator:
         return {
             "rows": rows,
             "cols": cols,
-            "missing_cells": missing_cells,
+            "missing_cell_values": missing_cell_values,
             "missing_ratio": round(missing_ratio, 4),
             "duplicates": duplicates,
             "empty_columns": empty_columns,

@@ -27,7 +27,7 @@ st.set_page_config(page_title="Open Data Valuation Tool", layout="centered")
 st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 st.title("Open Data Valuation Tool")
 st.markdown(
-    "Use this Tool to assess the value of open datasets based on strategic dimentions."
+    "Use this tool to assess the economic, social, and environmental value of open datasets."
 )
 # Instructions
 st.info(
