@@ -661,23 +661,37 @@ if st.session_state.get("calculate_scores"):
                     st.markdown(f"**{row['Dimension']}**:{row['Stars']}")
 
             # -----------------------------
-            # Tags - top dimention(s)
-            # no weights - top by Stars
-            # weights - top by weited score (stars * weight)
+            # Tags - prioritised value dimentions
+            #
+            # Tags shown ONLY when weights are applied
+            # They represent the dataset's top value dimention(s)
+            # baed on weited score (stars * weight)
+            
+            # If no weights - no tags shown, only the rating table / summary displayed
             # -----------------------------
-            score_col = "Weighted Score" if apply_weights else "Stars (0-5)"
-            top_score = rating_df[score_col].max()
-            top_dimensions = []
-            # Do not display tags if the score is 0
-            if top_score > 0:
-                top_dimensions = rating_df[rating_df[score_col] == top_score][
-                    "Dimension"
-                ].tolist()
 
-            tags_html = "".join(
-                f'<div class="oval-tag"> {dim}</div>' for dim in top_dimensions
-            )
-            st.markdown(
-                f'## 🏷️ Tags <div class="tag-container">{tags_html}</div>',
-                unsafe_allow_html=True,
-            )
+            top_dimensions = []
+            
+            if apply_weights:
+                score_col = "Weighted Score"
+                top_score = rating_df[score_col].max()
+                
+                # Do not display tags if the score is 0
+                if top_score > 0:
+                    top_dimensions = rating_df[rating_df[score_col] == top_score][
+                        "Dimension"
+                    ].tolist()
+                    
+                if top_dimensions:
+                    tags_html = "".join(f'<div class="oval-tag"> {dim}</div>' for dim in top_dimensions)
+                    st.markdown(
+                       f'## 🏷️ Tags <div class="tag-container">{tags_html}</div>',
+                       unsafe_allow_html=True,
+                    )
+                else:
+                    st.info("No tags to show (all weighted scores are 0).")
+            else:
+                st.info("Tags are shown when you apply weights.")
+
+            
+            
