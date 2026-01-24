@@ -79,6 +79,10 @@ if "ratings_nonce" not in st.session_state:
 # Tracks if the user confirmed the star ratings
 if "scores_confirmed" not in st.session_state:
     st.session_state["scores_confirmed"] = False
+    
+# Tracks if the user has interacted with at least one star rating
+if "ratings_touched" not in st.session_state:
+    st.session_state["ratings_touched"] = False
 
 # Indicates if the user clicked "Calculate Scores"
 if "calculate_scores" not in st.session_state:
@@ -159,6 +163,7 @@ def file_signature(uploaded_file) -> str:
 # Called when dataset_uploader changes
 def reset_dependent_state():
     st.session_state["scores_confirmed"] = False
+    st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
 
     st.session_state["selected_use_case"] = None
@@ -190,6 +195,7 @@ if "dim_nonce" not in st.session_state:
 # Reset one dimension
 def reset_one_dimension(dim: str):
     st.session_state["scores_confirmed"] = False
+    st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
     st.session_state["saved_submit_id"] = None
     st.session_state["dim_nonce"][dim] = st.session_state["dim_nonce"].get(dim, 0) + 1
@@ -197,6 +203,7 @@ def reset_one_dimension(dim: str):
 # Reset Rating
 def reset_ratings_only():
     st.session_state["scores_confirmed"] = False
+    st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
     st.session_state["saved_submit_id"] = None
     # Force remount star widgets (clear UI)
@@ -210,6 +217,7 @@ def reset_ratings_only():
 # Reset Use Case
 def reset_on_use_case_change():
     st.session_state["scores_confirmed"] = False
+    st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
     st.session_state["saved_submit_id"] = None
     st.session_state["latest_payload"] = None
@@ -329,12 +337,27 @@ for dim in value_dimensions:
     col_star, col_btn = st.columns([9, 1], vertical_alignment="center")
 
     with col_star:
-        scores[dim] = st_star_rating(
+        k = rating_key(dataset_sig, selected_use_case,dim) # unique key for this rating
+        prev_key = f"prev_{k}" # stores the previous value of this rating
+        
+        # Display the widget
+        val = st_star_rating(
             label="",
             maxValue=5,
             defaultValue=0,
-            key=rating_key(dataset_sig, selected_use_case, dim),
+            key=k,
         )
+        scores[dim] = val # saves the selected rating for this dimension
+        
+        # Mark as touched if user changed this rating
+        prev = st.session_state.get(prev_key, val)
+        
+        # Check if the rating chnaged since the last run
+        if val !=prev:
+            st.session_state["ratings_touched"] = True
+        
+        # Save the current rating value for the next time
+        st.session_state[prev_key] = val
 
     with col_btn:
         st.button(
@@ -348,11 +371,17 @@ for dim in value_dimensions:
 
 
 # Add a button to confirm scores
+if not st.session_state["ratings_touched"]:
+    st.info("Select at least one rating (0-5) before confirming.")
+    
 st.button(
     "Confirm Scores",
+    disabled=not st.session_state["ratings_touched"], # button disabled till at least one star rating clicked
     on_click=lambda: st.session_state.__setitem__("scores_confirmed", True),
 )
-
+if not st.session_state["scores_confirmed"]:
+    st.warning("Please rate the dimensions and click **Confirm Scores** to continue.")
+    st.stop()
 
 # -----------------------------
 # 4. OPTIONAL WEIGHTING
