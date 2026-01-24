@@ -90,6 +90,10 @@ if "ratings_touched" not in st.session_state:
 # Indicates if the user clicked "Calculate Scores"
 if "calculate_scores" not in st.session_state:
     st.session_state["calculate_scores"] = False
+    
+# Track if the user changed at least one weight
+if "weights_touched" not in st.session_state:
+    st.session_state["weights_touched"] = False
 
 # Unique identifier for the current valuation run   
 if "submit_id" not in st.session_state:
@@ -168,6 +172,7 @@ def reset_dependent_state():
     st.session_state["scores_confirmed"] = False
     st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
+    st.session_state["weights_touched"] = False
 
     st.session_state["selected_use_case"] = None
     st.session_state["apply_weights"] = False
@@ -200,6 +205,7 @@ def reset_one_dimension(dim: str):
     st.session_state["scores_confirmed"] = False
     st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
+    st.session_state["weights_touched"] = False
     st.session_state["saved_submit_id"] = None
     st.session_state["dim_nonce"][dim] = st.session_state["dim_nonce"].get(dim, 0) + 1
 
@@ -208,6 +214,7 @@ def reset_ratings_only():
     st.session_state["scores_confirmed"] = False
     st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
+    st.session_state["weights_touched"] = False
     st.session_state["saved_submit_id"] = None
     # Force remount star widgets (clear UI)
     st.session_state["ratings_nonce"] += 1
@@ -222,6 +229,7 @@ def reset_on_use_case_change():
     st.session_state["scores_confirmed"] = False
     st.session_state["ratings_touched"] = False
     st.session_state["calculate_scores"] = False
+    st.session_state["weights_touched"] = False
     st.session_state["saved_submit_id"] = None
     st.session_state["latest_payload"] = None
     st.session_state["submit_id"] = None
@@ -406,16 +414,30 @@ if st.session_state["scores_confirmed"]:
     if apply_weights:
         weights = {}
         for dim in value_dimensions:
-            weights[dim] = st.slider(
+            stars = int(scores.get(dim, 0) or 0) # get star rating 
+            
+            w_key = f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower()
+            prev_key = f"prev_{w_key}"
+            
+            w = st.slider(
                 f"{dim} Weight (0.0 - 1.0)",
                 0.0,
                 1.0,
-                0.5,  # default value
+                1.0,  # Important: default = netral 
                 step=0.1,
-                key=f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower(),
+                key=w_key,
+                disabled=(stars == 0), # disables 0 star rating 
             )
+            weights[dim] = w
+            
+            # Deteck user interaction
+            prev = st.session_state.get(prev_key, w)
+            if w !=prev:
+                st.session_state["weights_touched"] = True
+            st.session_state[prev_key] = w
     else:
         weights = {dim: 1.0 for dim in value_dimensions}
+        st.session_state["weights_touched"] = False
 
     # Add button Calculate Scores
     if st.button("Calculate Scores"):
@@ -434,11 +456,26 @@ if st.session_state.get("calculate_scores"):
     st.header("5. Valuation Score Summary")
 
     apply_weights = st.session_state.get("apply_weights", False)
+    
+    # Build weights default 1.0
+    weights={
+        dim: float(
+            st.session_state.get(
+                f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower(), 
+                1.0,
+            )
+        )
+        for dim in value_dimensions
+    }
+    
+    # Only treat weights as "applied" if the user actually changed something
+    weights_meaningful = any(weights[d] !=1.0 for d in value_dimensions)
+    apply_effective_weights = apply_weights and weights_meaningful
 
     # -----------------------------
     # CASE A: No WEIGHTS, STAR only results
     # -----------------------------
-    if not apply_weights:
+    if not apply_effective_weights:
         total_stars = sum(scores.values())
         max_possible = len(value_dimensions) * 5
         final_score_percent = round((total_stars / max_possible) * 100, 2)
@@ -483,12 +520,9 @@ if st.session_state.get("calculate_scores"):
     # CASE B: WEIGHTS applied
     # -----------------------------
     else:
-        weights = {
-            dim: st.session_state.get(
-                f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower(), 0.5
-            )
-            for dim in value_dimensions
-        }
+        # apply_weights = True
+        # weights_meaningful = True
+        # weights dict with default 1.0 exist
 
         # Calculated scores and weights
         weighted_scores = {
@@ -497,6 +531,12 @@ if st.session_state.get("calculate_scores"):
 
         total_score = sum(weighted_scores.values())
         max_possible = sum(5 * weights[dim] for dim in value_dimensions)
+        #Prevent division by 0
+        if max_possible == 0:
+            st.warning("All weights are set to 0, weighted score cannot be calculated."
+                       "Increase at least one weight above 0 to continue.")
+            st.stop()
+            
         final_score_percent = round((total_score / max_possible) * 100, 2)
 
         max_score = max(weighted_scores.values())
@@ -573,7 +613,7 @@ if st.session_state.get("calculate_scores"):
     if st.button("Show graphs"):
         st.subheader("Visualisation of Scores")
 
-        if apply_weights:
+        if apply_effective_weights:
             # Weighted chart
             df_plot = pd.DataFrame(
                 {
@@ -591,7 +631,7 @@ if st.session_state.get("calculate_scores"):
                 {
                     "Dimension": value_dimensions,
                     "Score": [
-                        round(float(scores[dim] or 0), 2) for dim in value_dimensions
+                        round(float(scores.get(dim, 0) or 0), 2) for dim in value_dimensions
                     ],
                 }
             )
@@ -628,14 +668,14 @@ if st.session_state.get("calculate_scores"):
         rating_rows = []
 
         for dim in value_dimensions:
-            stars = int(scores[dim] or 0)
+            stars = int(scores.get(dim, 0) or 0)
 
             # Base row
             row = {"Dimension": dim, "Stars (0-5)": stars, "Stars": star_string(stars)}
 
             # Apply weighted score if chosen
             if apply_weights:
-                w = float(weights.get(dim, 0.5))  # fallback
+                w = float(weights.get(dim, 1.0))  # fallback
                 row["Weight"] = w
                 row["Weighted Score"] = round(stars * w, 2)
 
@@ -650,7 +690,7 @@ if st.session_state.get("calculate_scores"):
             # -----------------------------
             # Sort table for display
             # -----------------------------
-            sort_col = "Weighted Score" if apply_weights else "Stars (0-5)"
+            sort_col = "Weighted Score" if apply_effective_weights else "Stars (0-5)"
             rating_df = rating_df.sort_values(by=sort_col, ascending=False)
 
             # -----------------------------
@@ -658,7 +698,7 @@ if st.session_state.get("calculate_scores"):
             # -----------------------------
             st.markdown("## ⭐ Value Rating Summary")
             for _, row in rating_df.iterrows():
-                if apply_weights:
+                if apply_effective_weights:
                     st.markdown(f"**{row['Dimension']}**: {row['Stars']} ")
                 else:
                     st.markdown(f"**{row['Dimension']}**:{row['Stars']}")
@@ -675,7 +715,7 @@ if st.session_state.get("calculate_scores"):
 
             top_dimensions = []
             
-            if apply_weights:
+            if apply_effective_weights and st.session_state["weights_touched"]:
                 score_col = "Weighted Score"
                 top_score = rating_df[score_col].max()
                 
