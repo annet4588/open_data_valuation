@@ -35,12 +35,95 @@ st.info(
     Takes less than **5 minutes** to complete
     """
 )
+# -----------------------------
+# Session state show_guide initialisation
+# -----------------------------
+# This session keeps the guide open while user interacting with the app
+if "show_guide" not in st.session_state:
+    st.session_state["show_guide"] = False
+    
+if st.button("Read the full guide"):
+    st.session_state["show_guide"] = True
+
+# Sidebar appears on click and displays the guide
+if st.session_state["show_guide"]:
+    with st.sidebar:
+        st.markdown("# Full User Guide")
+
+        if st.button("Close guide"):
+            st.session_state["show_guide"] = False
+            st.rerun()
+
+        st.markdown(
+            """
+### What this tool does
+This tool helps you understand the value of an open dataset for decision-making.
+
+---
+
+# How star ratings and weights work together
+
+### Star ratings (required)
+- Stars show how strong the dataset is in each area (0-5).
+- hey reflect the quality or usefulness of the data and never change.
+
+### Weights (optional)
+- Weights let you highlight what matters most for your use case.
+- They do not change star ratings — they only affect ranking and value tags.
+
+---
+
+# Important things to know about weights
+- Weights only apply if you change at least one slider
+- If all weights stay at 1, results remain star-based
+- You cannot apply weights to dimensions rated 0 stars
+
+This keeps results clear and avoids accidental prioritisation.
+
+---
+
+# What happens when weights are applied?
+When you change one or more weights:
+
+- Scores are calculated using **stars × weight**
+- Higher weighted scores appear higher in the results
+- A high-star dimension can move down if its weight is low
+
+Value tags are created based on these weighted scores.
+
+---
+
+# When should I use weights?
+Use weights if you want the results to reflect:
+
+- Policy or strategic priorities
+- A specific type of value
+- Where the dataset matters most for decision-making
+
+Leave weights unchanged for a neutral, balanced view.
+
+---
+
+# Value tags
+- Value tags appear **only when you apply weights**
+- They highlight the dataset's **main priority value**, based on what you chose to emphasise
+- If you don't apply weights, no value tags are shown
+
+Value tags are designed to help users quickly see **where a dataset delivers the most value for decision-making**.
+
+"""
+        )    
+        
+# -----------------------------
+# Instructions
+# -----------------------------
 st.markdown(
     """    
     <h2 style='text-align: center; '>Instructions:</h2>
     """,
     unsafe_allow_html=True
 )
+
 with st.expander(
     "ℹ️ **How to use this Tool** —  Click to see how it works  👆", expanded=False
 ):
@@ -50,7 +133,7 @@ with st.expander(
 Upload a CSV/XLSX/XLS file. A preview and a data quality overview will be shown.
 
 **Step 2 — Choose a use case**  
-Select the use case that best matches how the dataset will be used.
+Select the **option** that best matches how the dataset will be used.
 
 **Step 3 — Rate each value dimension (0-5 stars)**  
 Give a rating for each dimension (Economic, Social, Environmental, Cultural, Policy Alignment, Data Quality).  
@@ -58,18 +141,20 @@ Use **Reset** to clear a single dimension or **Update Scores** to reset all.
 
 **Step 4 — Optional: Apply weights**  
 Tick **Apply custom weights** if some dimensions matter more than others for your use case.  
-Weights range from **0.0 (not important)** to **1.0 (very important)**.
+Weights range from **0.0 (less important)** to **1.0 (normal importance)**.  
+If you **don't change** any weight, results stay **star-based**.
 
-**Step 5 — Calculate scores**  
-Click **Calculate Scores** to see the final valuation score and the value rating summary.  
-Click **Show graphs** to view charts and a breakdown by dimension.
+**Step 5 — View Results**  
+Click **Calculate Scores** to see the overall value score and breakdown.  
+Click **Show graphs** to explore the results visually.
 
-**How “Top dimension(s)” works**  
-- If weights are **OFF**: no top dimension tags are shown. Results display star ratings only. 
-- If weights are **ON**: top dimensions are identified using the highest **(stars × weight)** score.
-These dimensions are shown as **Value Tags**, reflecting your priorities.
+**Value Tags**  
+Value tags appear **only when weights are applied**.  
+They show which dimension matters most to your use case.
 
-**Star ratings show how strong the data is; Weights show what matters most.**
+**Remember:**  
+Stars show how **good** the data is.  
+Weights show **what matters most**. 
 """
     )
 
@@ -410,7 +495,9 @@ if st.session_state["scores_confirmed"]:
     apply_weights = st.checkbox(
         "Apply custom weights?", key="apply_weights" 
     )  # widget key
-
+    st.caption(
+       "Weights are only applied if you change at least one slider."
+    )
     if apply_weights:
         weights = {}
         for dim in value_dimensions:
