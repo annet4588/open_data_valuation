@@ -64,19 +64,19 @@ This tool helps you understand the value of an open dataset for decision-making.
 # How star ratings and weights work together
 
 ### Star ratings (required)
-- Stars show how strong the dataset is in each area (0-5).
-- hey reflect the quality or usefulness of the data and never change.
+- Stars show **how strong** the dataset is in each area (0-5).
+- They reflect the **quality** or **usefulness** of the data and never change.
 
 ### Weights (optional)
-- Weights let you highlight what matters most for your use case.
-- They do not change star ratings — they only affect ranking and value tags.
+- Weights let you highlight what **matters most** for your use case.
+- They do not change star ratings — they only **affect ranking** and **value tags**.
 
 ---
 
 # Important things to know about weights
-- Weights only apply if you change at least one slider
-- If all weights stay at 1, results remain star-based
-- You cannot apply weights to dimensions rated 0 stars
+- Weights only apply if you **change at least one** slider
+- If all weights **stay at 1**, results remain **star-based**
+- You **cannot apply** weights to dimensions rated **0 stars**
 
 This keeps results clear and avoids accidental prioritisation.
 
@@ -86,8 +86,8 @@ This keeps results clear and avoids accidental prioritisation.
 When you change one or more weights:
 
 - Scores are calculated using **stars × weight**
-- Higher weighted scores appear higher in the results
-- A high-star dimension can move down if its weight is low
+- Higher weighted scores **appear higher** in the results
+- A **high-star** dimension can **move down** if its weight is **low**
 
 Value tags are created based on these weighted scores.
 
@@ -96,7 +96,7 @@ Value tags are created based on these weighted scores.
 # When should I use weights?
 Use weights if you want the results to reflect:
 
-- Policy or strategic priorities
+- Policy or organisational priorities
 - A specific type of value
 - Where the dataset matters most for decision-making
 
@@ -106,8 +106,8 @@ Leave weights unchanged for a neutral, balanced view.
 
 # Value tags
 - Value tags appear **only when you apply weights**
-- They highlight the dataset's **main priority value**, based on what you chose to emphasise
-- If you don't apply weights, no value tags are shown
+- They **highlight** the dataset's **main priority value**, based on what you chose to emphasise
+- If you **don't apply** weights, **no value** tags are shown
 
 Value tags are designed to help users quickly see **where a dataset delivers the most value for decision-making**.
 
