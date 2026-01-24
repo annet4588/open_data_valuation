@@ -1,4 +1,4 @@
-## Week 1 (12 January)
+## Week 2 (19 January)
 **Focus:** Second Iteration: Scoring logic refinement, weighting behaviour, value tagging rules, and user guidance improvements.
 
 ---
