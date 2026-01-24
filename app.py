@@ -217,27 +217,27 @@ use_cases = [
 # Tooltips Star rating
 tooltips = {
     "Economic": (
-        "☆ None (0) = No economic benefit from use · " 
+        "☆ None (0) = No economic benefit from use  \n"  
         "⭐⭐⭐⭐⭐ (5) = Enables cost reduction, efficiency gains, or avoided expenditure"
         ),
     "Social": (
-        "☆ None (0) = No social benefit from use · " 
+        "☆ None (0) = No social benefit from use  \n" 
         "⭐⭐⭐⭐⭐ (5) = Improves wellbeing, access, or public outcomes through use of the data"
         ),
     "Environmental": (
-        "☆ None (0) = No practical environmental application · "
+        "☆ None (0) = No practical environmental application  \n"
         "⭐⭐⭐⭐⭐ (5) = Enables environmental performance improvement or risk mitigation"
         ) ,
     "Cultural": (
-        "☆ None (0) = No cultural or heritage benefit from use · "
+        "☆ None (0) = No cultural or heritage benefit from use  \n"
         "⭐⭐⭐⭐⭐ (5) = Supports cultural heritage, identity, or place-based outcomes"
         ) ,
     "Policy Alignment": (
-        "☆ None (0) = Not used in policy or statutory contexts · "
+        "☆ None (0) = Not used in policy or statutory contexts  \n"
         "⭐⭐⭐⭐⭐ (5) = Critical for policy development, delivery, or regulatory decision-making"
         )  ,
     "Data Quality": (
-        "☆ None (0) = Data quality prevents effective use · "
+        "☆ None (0) = Data quality prevents effective use  \n"
         "⭐⭐⭐⭐⭐ (5) = FAIR-aligned, findable, accessible, interoperable and reusable data"
         ) ,
 }
