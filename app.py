@@ -52,7 +52,7 @@ Upload a CSV/XLSX/XLS file. A preview and a data quality overview will be shown.
 **Step 2 — Choose a use case**  
 Select the use case that best matches how the dataset will be used.
 
-**Step 3 — Rate each value dimension (0–5 stars)**  
+**Step 3 — Rate each value dimension (0-5 stars)**  
 Give a rating for each dimension (Economic, Social, Environmental, Cultural, Policy Alignment, Data Quality).  
 Use **Reset** to clear a single dimension or **Update Scores** to reset all.
 
@@ -61,12 +61,15 @@ Tick **Apply custom weights** if some dimensions matter more than others for you
 Weights range from **0.0 (not important)** to **1.0 (very important)**.
 
 **Step 5 — Calculate scores**  
-Click **Calculate Scores** to see the final valuation score and the top dimension(s).  
-Click **Show graphs** to view charts and a value rating summary.
+Click **Calculate Scores** to see the final valuation score and the value rating summary.  
+Click **Show graphs** to view charts and a breakdown by dimension.
 
 **How “Top dimension(s)” works**  
-- If weights are OFF: top dimensions are those with the highest star rating.  
-- If weights are ON: top dimensions are those with the highest **(stars × weight)** score.
+- If weights are **OFF**: no top dimension tags are shown. Results display star ratings only. 
+- If weights are **ON**: top dimensions are identified using the highest **(stars × weight)** score.
+These dimensions are shown as **Value Tags**, reflecting your priorities.
+
+**Star ratings show how strong the data is; Weights show what matters most.**
 """
     )
 
