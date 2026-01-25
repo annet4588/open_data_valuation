@@ -580,6 +580,7 @@ if st.session_state.get("calculate_scores"):
             "stars": {d: int(scores[d] or 0) for d in value_dimensions},
             "weights": {d: 1.0 for d in value_dimensions},
             "final_score_percent": float(final_score_percent),
+            "tags":[],
         }
         
         # Store payload so it can be saved only when the user clicks "save results"
@@ -611,13 +612,32 @@ if st.session_state.get("calculate_scores"):
         # weights_meaningful = True
         # weights dict with default 1.0 exist
 
-        # Calculated scores and weights
+        # Calculated weighted score for each dimension (stars * weight)
         weighted_scores = {
             dim: (scores[dim] or 0) * weights[dim] for dim in value_dimensions
         }
-
+        # -----------------------------
+        # Compute value tags for saving
+        # -----------------------------
+        # Tags represent the highest priority dimensions 
+        # based on weighted scores
+        top_dimensions =[]
+        
+        if apply_effective_weights and st.session_state["weights_touched"]:
+            if weighted_scores:
+                top_score = max(weighted_scores.values())
+                
+                if top_score > 0:
+                    top_dimensions=[
+                        dim for dim, val in weighted_scores.items()
+                        if val == top_score
+                    ]
+        # -----------------------------            
+        # Continue with overall score calculations
+        # -----------------------------
         total_score = sum(weighted_scores.values())
         max_possible = sum(5 * weights[dim] for dim in value_dimensions)
+        
         #Prevent division by 0
         if max_possible == 0:
             st.warning("All weights are set to 0, weighted score cannot be calculated."
@@ -625,7 +645,8 @@ if st.session_state.get("calculate_scores"):
             st.stop()
             
         final_score_percent = round((total_score / max_possible) * 100, 2)
-
+        
+        # Top dimensions for display
         max_score = max(weighted_scores.values())
         top_dim = [dim for dim, val in weighted_scores.items() if val == max_score]
         top_dim_str = ", ".join(top_dim)
@@ -639,6 +660,7 @@ if st.session_state.get("calculate_scores"):
             "stars": {d: int(scores[d] or 0) for d in value_dimensions},
             "weights": weights,
             "final_score_percent": float(final_score_percent),
+            "tags": top_dimensions,
         }
         
         # Store payload
@@ -793,24 +815,11 @@ if st.session_state.get("calculate_scores"):
             # -----------------------------
             # Tags - prioritised value dimentions
             #
-            # Tags shown ONLY when weights are applied
-            # They represent the dataset's top value dimention(s)
-            # baed on weited score (stars * weight)
-            
+            # Tags shown ONLY when weights are applied            
             # If no weights - no tags shown, only the rating table / summary displayed
             # -----------------------------
-
-            top_dimensions = []
             
             if apply_effective_weights and st.session_state["weights_touched"]:
-                score_col = "Weighted Score"
-                top_score = rating_df[score_col].max()
-                
-                # Do not display tags if the score is 0
-                if top_score > 0:
-                    top_dimensions = rating_df[rating_df[score_col] == top_score][
-                        "Dimension"
-                    ].tolist()
                     
                 if top_dimensions:
                     tags_html = "".join(f'<div class="oval-tag"> {dim}</div>' for dim in top_dimensions)
