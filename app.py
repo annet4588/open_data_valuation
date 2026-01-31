@@ -57,7 +57,7 @@ if st.session_state["show_guide"]:
         st.markdown(
             """
 ### What this tool does
-This tool helps you understand the value of an open dataset for decision-making.
+This tool helps you understand the value of an open dataset for decision-making.  
 
 ---
 
@@ -110,6 +110,11 @@ Leave weights unchanged for a neutral, balanced view.
 - If you **don't apply** weights, **no value** tags are shown
 
 Value tags are designed to help users quickly see **where a dataset delivers the most value for decision-making**.
+
+---
+# Evidence base    
+This tool operationalises NatureScot's national research framework by adapting it for **open data valuation** and aligning it with **FAIR principles**.    
+[NatureScot Research Report 1382 - Understanding the need and value of land cover and habitat data](https://www.nature.scot/doc/naturescot-research-report-1382-understanding-need-and-value-land-cover-and-habitat-data)  
 
 """
         )    
@@ -218,7 +223,7 @@ use_cases = [
 tooltips = {
     "Economic": (
         "☆ None (0) = No economic benefit from use  \n"  
-        "⭐⭐⭐⭐⭐ (5) = Enables cost reduction, efficiency gains, or avoided expenditure"
+        "⭐⭐⭐⭐⭐ (5) = Strong cost savings, efficiency gains, or avoided cost"
         ),
     "Social": (
         "☆ None (0) = No social benefit from use  \n" 
@@ -428,8 +433,80 @@ dataset_sig = st.session_state["dataset_sig"]
 
 for dim in value_dimensions:
     st.markdown(f"**{dim}**")
+    
+    # Updated tooltip with expander sections explaining how to assess each dimension
     st.caption(tooltips.get(dim, ""))
+    with st.expander("How to assess this dimension"):
+        if dim == "Economic":
+            st.write("""
+                **Consider:**
+                • Cost savings
+                • Efficiency gains
+                • Avoided data collection costs
 
+                **Example:** Does this data reduce staff time or external spend?  
+                **Learn more:**
+                [NatureScot Report/Components of the framework](https://www.nature.scot/doc/naturescot-research-report-1382-understanding-need-and-value-land-cover-and-habitat-data#components-of-the-framework)
+            """
+            )
+        elif dim == "Social":
+            st.write("""
+                **Consider:**
+                • Public wellbeing
+                • Access to services
+                • Community outcomes
+
+                **Example:** Does this help people access support?
+            """)
+
+        elif dim == "Environmental":
+            st.write("""
+                **Consider:**
+                • Risk monitoring
+                • Habitat protection
+                • Climate impacts
+
+                **Example:** Does this support environmental management?
+            """)
+
+        elif dim == "Cultural":
+            st.write("""
+                **Consider:**
+                • Heritage protection
+                • Place identity
+                • Cultural records
+
+                **Example:** Does this preserve local history?
+            """)
+
+        elif dim == "Policy Alignment":
+            st.write("""
+                **Consider:**
+                • Legal reporting
+                • Statutory duties
+                • Strategy support
+
+                **Example:** Is this required for compliance?
+            """)
+
+        elif dim == "Data Quality":
+            st.write("""
+                **Consider:**
+                • Accuracy and completeness
+                • Clear Metadata 
+                • FAIR principles
+                • Licensing and ownership
+                • Easy to find on official data platforms  
+                
+                **Example:** Can someone outside your team easily find, understand, and reuse this dataset?     
+
+                **Guidance:** 
+                [The Government Data Quality Framework (GOV.UK)](https://www.gov.uk/government/publications/the-government-data-quality-framework/the-government-data-quality-framework/)  
+                **Learn more:**
+                [FAIR Principals (GO-FAIR)](https://www.go-fair.org/fair-principles/)
+            """
+            )
+            
     col_star, col_btn = st.columns([9, 1], vertical_alignment="center")
 
     with col_star:
