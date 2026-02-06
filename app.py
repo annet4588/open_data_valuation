@@ -795,7 +795,7 @@ if st.session_state.get("calculate_scores"):
             except Exception as e:
                 st.error(f"Couldn't save results to the database: {e}")   
                       
-    st.info("Click **Show graph** to view a visual breakdown of scores and priorities by dimension.")
+    st.info("Click **Show graph** to see how star rating and weights affect scores and priorities.")
     # Show graphs
     if st.button("Show graphs"):
         st.subheader("Visualisation of Scores")
