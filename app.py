@@ -793,8 +793,9 @@ if st.session_state.get("calculate_scores"):
                 st.success("Results saved successfully!")
                 st.rerun() #refresh UI to get button disabled
             except Exception as e:
-                st.error(f"Couldn't save results to the database: {e}")         
-
+                st.error(f"Couldn't save results to the database: {e}")   
+                      
+    st.info("Click **Show graph** to view a visual breakdown of scores and priorities by dimension.")
     # Show graphs
     if st.button("Show graphs"):
         st.subheader("Visualisation of Scores")
