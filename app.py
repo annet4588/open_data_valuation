@@ -922,7 +922,7 @@ if st.session_state.get("calculate_scores"):
                 disabled=feedback_locked
             )
             comment = st.text_area(
-                "Optional comment",
+                "Optional comments",
                 disabled=feedback_locked
             )
             
