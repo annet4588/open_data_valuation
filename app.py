@@ -773,27 +773,9 @@ if st.session_state.get("calculate_scores"):
     == st.session_state.get("latest_payload", {}).get("submit_id")
     )
     
-    # Display message depending on status: success message - if results saved; guidance message - if not saved yet
-    if already_saved:
-        st.success("Results saved successfully!")
-    else:
-        st.info("When you're happy with the results, click **Save Results** to store them.")
-    
-    # Button before save "Save Results" and after - "Saved"
-    button_label = "Saved" if already_saved else "Save Results"
-    if st.button(button_label, disabled=already_saved):
-        payload = st.session_state.get("latest_payload")
-        if not payload:
-            st.warning("No results to save yet.")
-        else:
-            payload["created_at"] = datetime.now(timezone.utc).isoformat()
-            try:
-                save_valuation(payload)
-                st.session_state["saved_submit_id"] = payload["submit_id"]
-                st.success("Results saved successfully!")
-                st.rerun() #refresh UI to get button disabled
-            except Exception as e:
-                st.error(f"Couldn't save results to the database: {e}")   
+    # -----------------------------            
+    # Show Graphs Section
+    # -----------------------------
                       
     st.info("Click **Show graph** to see how star rating and weights affect scores and priorities.")
     # Show graphs
@@ -909,6 +891,30 @@ if st.session_state.get("calculate_scores"):
                     st.info("No tags to show (all weighted scores are 0).")
             else:
                 st.info("Tags are shown when you apply weights.")
+                
+    # -----------------------------            
+    # Save Results Section
+    # -----------------------------
 
-            
+    # Display message depending on status: success message - if results saved; guidance message - if not saved yet
+    if already_saved:
+        st.success("Results saved successfully!")
+    else:
+        st.info("When you're happy with the results, click **Save Results** to store them.")
+    
+    # Button before save "Save Results" and after - "Saved"
+    button_label = "Saved" if already_saved else "Save Results"
+    if st.button(button_label, disabled=already_saved):
+        payload = st.session_state.get("latest_payload")
+        if not payload:
+            st.warning("No results to save yet.")
+        else:
+            payload["created_at"] = datetime.now(timezone.utc).isoformat()
+            try:
+                save_valuation(payload)
+                st.session_state["saved_submit_id"] = payload["submit_id"]
+                st.success("Results saved successfully!")
+                st.rerun() #refresh UI to get button disabled
+            except Exception as e:
+                st.error(f"Couldn't save results to the database: {e}")           
             
