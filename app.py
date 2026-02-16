@@ -270,6 +270,8 @@ def reset_dependent_state():
     st.session_state["saved_submit_id"] = None
     st.session_state["latest_payload"] = None
 
+    st.session_state.pop("feedback", None)
+    
     # Force remount star widgets (clear UI)
     st.session_state["ratings_nonce"] += 1
 
@@ -297,6 +299,7 @@ def reset_one_dimension(dim: str):
     st.session_state["calculate_scores"] = False
     st.session_state["weights_touched"] = False
     st.session_state["saved_submit_id"] = None
+    st.session_state.pop("feedback", None)
     st.session_state["dim_nonce"][dim] = st.session_state["dim_nonce"].get(dim, 0) + 1
 
 # Reset Rating
@@ -306,6 +309,7 @@ def reset_ratings_only():
     st.session_state["calculate_scores"] = False
     st.session_state["weights_touched"] = False
     st.session_state["saved_submit_id"] = None
+    st.session_state.pop("feedback", None)
     # Force remount star widgets (clear UI)
     st.session_state["ratings_nonce"] += 1
 
@@ -323,6 +327,7 @@ def reset_on_use_case_change():
     st.session_state["saved_submit_id"] = None
     st.session_state["latest_payload"] = None
     st.session_state["submit_id"] = None
+    st.session_state.pop("feedback", None)
     st.session_state["ratings_nonce"] +=1 # remount star widget - so previous rating don't appear
     
 def star_string(score: float, max_stars: int = 5) -> str:
@@ -772,11 +777,12 @@ if st.session_state.get("calculate_scores"):
     and st.session_state.get("saved_submit_id") 
     == st.session_state.get("latest_payload", {}).get("submit_id")
     )
+    # Lock the feedback once completed
+    feedback_locked = already_saved or(st.session_state.get("feedback") is not None)
     
     # -----------------------------            
     # Show Graphs Section
-    # -----------------------------
-                      
+    # -----------------------------                    
     st.info("Click **Show graph** to see how star rating and weights affect scores and priorities.")
     # Show graphs
     if st.button("Show graphs"):
@@ -893,6 +899,48 @@ if st.session_state.get("calculate_scores"):
                 st.info("Tags are shown when you apply weights.")
                 
     # -----------------------------            
+    # Feedback Section
+    # -----------------------------
+    if st.session_state.get("calculate_scores"):
+        st.divider()
+        st.header("Quick Feedback - 30 seconds")
+        
+        with st.form("feedback_form"):
+            question1 = st.radio(
+                "1. Was the Tool easy to use?",
+                ["Very easy", "Easy", "Neutral", "Difficult"],
+                disabled=feedback_locked
+            )
+            question2 = st.radio(
+                "2. Did the Score reflect your perception of the dataset's value?",
+                ["Yes", "Mostly", "Not sure", "No"],
+                disabled=feedback_locked
+            )
+            question3 = st.radio(
+                "3. Would you use this Tool again?",
+                ["Yes", "Maybe", "No"],
+                disabled=feedback_locked
+            )
+            comment = st.text_area(
+                "Optional comment",
+                disabled=feedback_locked
+            )
+            
+            feedback_submitted = st.form_submit_button(
+                "Submitted" if feedback_locked else "Submit Feedback",
+                disabled=feedback_locked
+                )
+
+            if feedback_submitted:
+                st.session_state["feedback"] = {
+                    "feedback_q1":question1,
+                    "feedback_q2": question2,
+                    "feedback_q3": question3,
+                    "feedback_comment": comment
+                }
+                st.success("Thank you for your feedback! Now you can Save Results")
+                st.rerun()
+    # -----------------------------            
     # Save Results Section
     # -----------------------------
 
@@ -904,12 +952,18 @@ if st.session_state.get("calculate_scores"):
     
     # Button before save "Save Results" and after - "Saved"
     button_label = "Saved" if already_saved else "Save Results"
+ 
     if st.button(button_label, disabled=already_saved):
         payload = st.session_state.get("latest_payload")
         if not payload:
             st.warning("No results to save yet.")
         else:
             payload["created_at"] = datetime.now(timezone.utc).isoformat()
+            
+            feedback = st.session_state.get("feedback")
+            
+            if feedback:
+                payload.update(feedback)
             try:
                 save_valuation(payload)
                 st.session_state["saved_submit_id"] = payload["submit_id"]
