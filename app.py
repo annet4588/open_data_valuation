@@ -667,13 +667,23 @@ if st.session_state.get("calculate_scores"):
     # -----------------------------
     # CASE A: No WEIGHTS, STAR only results
     # -----------------------------
+    # In this mode all value dimensions are treated equally 
+    # Data Quality is shown as Usability info but excluded from 
+    # the highest rated value dimension
     if not apply_effective_weights:
         total_stars = sum(scores.values())
         max_possible = len(value_dimensions) * 5
         final_score_percent = round((total_stars / max_possible) * 100, 2)
+        
+        # Lock Data Quality dimension
+        LOCKED_DIM = "Data Quality"
+        dims_for_top = [dim for dim in value_dimensions if dim != LOCKED_DIM]
+        # Make a list of dimensions excluding Data Quality
+        data_quality_score = scores.get("Data Quality", 0)
 
-        max_score = max(scores.values())
-        top_dim = [dim for dim, val in scores.items() if val == max_score]
+        # Identify the highest rated dimension(s)
+        max_score = max(scores[dim] for dim in dims_for_top)
+        top_dim = [dim for dim in dims_for_top if scores[dim] == max_score]
         top_dim_str = ", ".join(top_dim)
 
         # Payload
@@ -691,11 +701,17 @@ if st.session_state.get("calculate_scores"):
         # Store payload so it can be saved only when the user clicks "save results"
         st.session_state["latest_payload"] = payload
 
+       # -----------------------------
+       # Display star-only outcome
+       # -----------------------------
+       # Shows - Highest rated value dimension(s)
+       # Data Quality separately shown as dataset Usability info
         st.markdown(
-            f"""
-            **Valuation Score (Star-Based):** {final_score_percent}%  
+            f""" 
+            **Use Case:** {selected_use_case}  
             **Top Score Dimension(s):** {top_dim_str}  
-            **Use Case:** {selected_use_case}
+            
+            **Dataset Usability (Data Quality)**: {data_quality_score}/5 ⭐
             """
         )
 
@@ -712,18 +728,23 @@ if st.session_state.get("calculate_scores"):
     # -----------------------------
     # CASE B: WEIGHTS applied
     # -----------------------------
+    # In this mode star rating are multiplied by user-defined weights
+    # This reflects Priority for selected Use Case
+    # Shows - Use Case / Where the dataset delivers value
+    # Data Quality excluded from calculation to prevent usability from dominating contextual value
     else:
         # apply_weights = True
         # weights_meaningful = True
         # weights dict with default 1.0 exist
         
-        # Lock Data Quality dimension
+        # Lock Data Quality dimension - set Data Quality to 0
         LOCKED_DIM = "Data Quality"
         if LOCKED_DIM in value_dimensions:
             # scores[LOCKED_DIM] = 0
             weights[LOCKED_DIM] = 0
 
-        # Calculated weighted score for each dimension (stars * weight)
+        # Calculated contextual score for each dimension (stars * weight)
+        # this scores determine where the datset delivers most value
         weighted_scores = {
             dim: (scores[dim] or 0) * weights[dim] for dim in value_dimensions
         }
@@ -783,7 +804,12 @@ if st.session_state.get("calculate_scores"):
             interpretation_sentences.get(dim, "")
             for dim in top_dim
         )
-
+       # -----------------------------
+       # Display contextual outcome
+       # -----------------------------
+       # Shows - Where the datset delivers most value for this use case
+       # Interpretation of each top value dimension
+       # Breakdown of stars, weights, and weighted scores
         st.markdown(
             f"""
             **Use Case:** {selected_use_case}
