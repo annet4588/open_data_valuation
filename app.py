@@ -41,7 +41,7 @@ st.info(
 # This session keeps the guide open while user interacting with the app
 if "show_guide" not in st.session_state:
     st.session_state["show_guide"] = False
-    
+
 if st.button("Read the full guide"):
     st.session_state["show_guide"] = True
 
@@ -118,8 +118,8 @@ This tool operationalises NatureScot's national research framework by adapting i
 [NatureScot Research Report 1382 - Understanding the need and value of land cover and habitat data](https://www.nature.scot/doc/naturescot-research-report-1382-understanding-need-and-value-land-cover-and-habitat-data)  
 
 """
-        )    
-        
+        )
+
 # -----------------------------
 # Instructions
 # -----------------------------
@@ -127,7 +127,7 @@ st.markdown(
     """    
     <h2 style='text-align: center; '>Instructions:</h2>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 with st.expander(
@@ -173,7 +173,7 @@ if "ratings_nonce" not in st.session_state:
 # Tracks if the user confirmed the star ratings
 if "scores_confirmed" not in st.session_state:
     st.session_state["scores_confirmed"] = False
-    
+
 # Tracks if the user has interacted with at least one star rating
 if "ratings_touched" not in st.session_state:
     st.session_state["ratings_touched"] = False
@@ -181,21 +181,21 @@ if "ratings_touched" not in st.session_state:
 # Indicates if the user clicked "Calculate Scores"
 if "calculate_scores" not in st.session_state:
     st.session_state["calculate_scores"] = False
-    
+
 # Track if the user changed at least one weight
 if "weights_touched" not in st.session_state:
     st.session_state["weights_touched"] = False
 
-# Unique identifier for the current valuation run   
+# Unique identifier for the current valuation run
 if "submit_id" not in st.session_state:
     st.session_state["submit_id"] = None
 
 # Prevent duplicate db inserts when Streamlit reruns
 if "saved_submit_id" not in st.session_state:
     st.session_state["saved_submit_id"] = None
-    
+
 # Holds the most recent calculated valuation payload
-# Allows results to be re calculated, and only saved the user clicks "Save Results"    
+# Allows results to be re calculated, and only saved the user clicks "Save Results"
 if "latest_payload" not in st.session_state:
     st.session_state["latest_payload"] = None
 
@@ -223,37 +223,37 @@ use_cases = [
 # Tooltips Star rating
 tooltips = {
     "Economic": (
-        "☆ None (0) = No economic benefit from use  \n"  
+        "☆ None (0) = No economic benefit from use  \n"
         "⭐⭐⭐⭐⭐ (5) = Strong cost savings, efficiency gains, or avoided cost"
-        ),
+    ),
     "Social": (
-        "☆ None (0) = No social benefit from use  \n" 
+        "☆ None (0) = No social benefit from use  \n"
         "⭐⭐⭐⭐⭐ (5) = Improves wellbeing, access, or public outcomes through use of the data"
-        ),
+    ),
     "Environmental": (
         "☆ None (0) = No practical environmental application  \n"
         "⭐⭐⭐⭐⭐ (5) = Enables environmental performance improvement or risk mitigation"
-        ) ,
+    ),
     "Cultural": (
         "☆ None (0) = No cultural or heritage benefit from use  \n"
         "⭐⭐⭐⭐⭐ (5) = Supports cultural heritage, identity, or place-based outcomes"
-        ) ,
+    ),
     "Policy Alignment": (
         "☆ None (0) = Not used in policy or statutory contexts  \n"
         "⭐⭐⭐⭐⭐ (5) = Critical for policy development, delivery, or regulatory decision-making"
-        )  ,
+    ),
     "Data Quality": (
         "☆ None (0) = Data quality prevents effective use  \n"
         "⭐⭐⭐⭐⭐ (5) = FAIR-aligned, findable, accessible, interoperable and reusable data"
-        ) ,
+    ),
 }
 
 # Explanation Sentences for Each Dimension to make it clear for the user
-interpretation_sentences ={
+interpretation_sentences = {
     "Economic": (
         "This indicates that the dataset's strongest value for this use case lies in informing economic decisions, resource allocation, or financial efficiency."
     ),
-    "Social":(
+    "Social": (
         "This indicates that the dataset's strongest value for this use case lies in its contribution to social outcomes, community wellbeing, or public benefit."
     ),
     "Environmental": (
@@ -264,9 +264,9 @@ interpretation_sentences ={
     ),
     "Policy Alignment": (
         "This indicates that the dataset's strongest value for this use case lies in supporting policy objectives, statutory duties, or structured planning and performance monitoring."
-    )
-    
+    ),
 }
+
 
 # -----------------------------
 # Helpers
@@ -292,7 +292,7 @@ def reset_dependent_state():
     st.session_state["latest_payload"] = None
 
     st.session_state.pop("feedback", None)
-    
+
     # Force remount star widgets (clear UI)
     st.session_state["ratings_nonce"] += 1
 
@@ -300,6 +300,7 @@ def reset_dependent_state():
     for k in list(st.session_state.keys()):
         if k.startswith("rating_") or k.startswith("weight_"):
             del st.session_state[k]
+
 
 # Rating key
 def rating_key(dataset_sig: str, use_case: str, dim: str) -> str:
@@ -309,9 +310,11 @@ def rating_key(dataset_sig: str, use_case: str, dim: str) -> str:
         " ", "_"
     ).lower()
 
+
 # Initialise per dimension nonce to allow reset each dimension individually
 if "dim_nonce" not in st.session_state:
     st.session_state["dim_nonce"] = {d: 0 for d in value_dimensions}
+
 
 # Reset one dimension
 def reset_one_dimension(dim: str):
@@ -322,6 +325,7 @@ def reset_one_dimension(dim: str):
     st.session_state["saved_submit_id"] = None
     st.session_state.pop("feedback", None)
     st.session_state["dim_nonce"][dim] = st.session_state["dim_nonce"].get(dim, 0) + 1
+
 
 # Reset Rating
 def reset_ratings_only():
@@ -338,7 +342,8 @@ def reset_ratings_only():
     for k in list(st.session_state.keys()):
         if k.startswith("rating_") or k.startswith("weight_"):
             del st.session_state[k]
-            
+
+
 # Reset Use Case
 def reset_on_use_case_change():
     st.session_state["scores_confirmed"] = False
@@ -349,12 +354,16 @@ def reset_on_use_case_change():
     st.session_state["latest_payload"] = None
     st.session_state["submit_id"] = None
     st.session_state.pop("feedback", None)
-    st.session_state["ratings_nonce"] +=1 # remount star widget - so previous rating don't appear
-    
+    st.session_state[
+        "ratings_nonce"
+    ] += 1  # remount star widget - so previous rating don't appear
+
+
 def star_string(score: float, max_stars: int = 5) -> str:
     s = int(round(score))
     s = max(0, min(max_stars, s))
     return "⭐" * s + "☆" * (max_stars - s)
+
 
 # -----------------------------
 # 1. SELECT DATASET
@@ -409,7 +418,9 @@ st.json(quality)
 # 2. SELECT USE CASE
 # -----------------------------
 st.header("2. Select Use Case")
-st.info("Select the **Use Case** that best reflects how this dataset is primarily used.")
+st.info(
+    "Select the **Use Case** that best reflects how this dataset is primarily used."
+)
 
 # User's selected use case using session_state key
 selected_use_case = st.selectbox(
@@ -417,7 +428,7 @@ selected_use_case = st.selectbox(
     use_cases,
     index=None,
     placeholder="Select Use Case...",
-    key="selected_use_case",  
+    key="selected_use_case",
     on_change=reset_on_use_case_change,
 )
 
@@ -444,7 +455,7 @@ scores = {}
 
 # Add a button to update scores
 st.info(
-        """
+    """
         Select a **star rating (0-5)** for each value dimension below.
 
         Use **Reset** to clear a single dimension.  
@@ -459,12 +470,13 @@ dataset_sig = st.session_state["dataset_sig"]
 
 for dim in value_dimensions:
     st.markdown(f"**{dim}**")
-    
+
     # Updated tooltip with expander sections explaining how to assess each dimension
     st.caption(tooltips.get(dim, ""))
     with st.expander("How to assess this dimension"):
         if dim == "Economic":
-            st.write("""
+            st.write(
+                """
                 **Consider:**
                 • Cost savings
                 • Efficiency gains
@@ -476,47 +488,56 @@ for dim in value_dimensions:
             """
             )
         elif dim == "Social":
-            st.write("""
+            st.write(
+                """
                 **Consider:**
                 • Public wellbeing
                 • Access to services
                 • Community outcomes
 
                 **Example:** Does this help people access support?
-            """)
+            """
+            )
 
         elif dim == "Environmental":
-            st.write("""
+            st.write(
+                """
                 **Consider:**
                 • Risk monitoring
                 • Habitat protection
                 • Climate impacts
 
                 **Example:** Does this support environmental management?
-            """)
+            """
+            )
 
         elif dim == "Cultural":
-            st.write("""
+            st.write(
+                """
                 **Consider:**
                 • Heritage protection
                 • Place identity
                 • Cultural records
 
                 **Example:** Does this preserve local history?
-            """)
+            """
+            )
 
         elif dim == "Policy Alignment":
-            st.write("""
+            st.write(
+                """
                 **Consider:**
                 • Legal reporting
                 • Statutory duties
                 • Strategy support
 
                 **Example:** Is this required for compliance?
-            """)
+            """
+            )
 
         elif dim == "Data Quality":
-            st.write("""
+            st.write(
+                """
                 **Consider:**
                 • Accuracy and completeness
                 • Clear Metadata 
@@ -532,13 +553,15 @@ for dim in value_dimensions:
                 [FAIR Principals (GO-FAIR)](https://www.go-fair.org/fair-principles/)
             """
             )
-            
+
     col_star, col_btn = st.columns([9, 1], vertical_alignment="center")
 
     with col_star:
-        k = rating_key(dataset_sig, selected_use_case,dim) # unique key for this rating
-        prev_key = f"prev_{k}" # stores the previous value of this rating
-        
+        k = rating_key(
+            dataset_sig, selected_use_case, dim
+        )  # unique key for this rating
+        prev_key = f"prev_{k}"  # stores the previous value of this rating
+
         # Display the widget
         val = st_star_rating(
             label="",
@@ -546,15 +569,15 @@ for dim in value_dimensions:
             defaultValue=0,
             key=k,
         )
-        scores[dim] = val # saves the selected rating for this dimension
-        
+        scores[dim] = val  # saves the selected rating for this dimension
+
         # Mark as touched if user changed this rating
         prev = st.session_state.get(prev_key, val)
-        
+
         # Check if the rating chnaged since the last run
-        if val !=prev:
+        if val != prev:
             st.session_state["ratings_touched"] = True
-        
+
         # Save the current rating value for the next time
         st.session_state[prev_key] = val
 
@@ -572,10 +595,12 @@ for dim in value_dimensions:
 # Add a button to confirm scores
 if not st.session_state["ratings_touched"]:
     st.info("Select at least one rating (0-5) before confirming.")
-    
+
 st.button(
     "Confirm Scores",
-    disabled=not st.session_state["ratings_touched"], # button disabled till at least one star rating clicked
+    disabled=not st.session_state[
+        "ratings_touched"
+    ],  # button disabled till at least one star rating clicked
     on_click=lambda: st.session_state.__setitem__("scores_confirmed", True),
 )
 if not st.session_state["scores_confirmed"]:
@@ -587,7 +612,7 @@ if not st.session_state["scores_confirmed"]:
 # -----------------------------
 if st.session_state["scores_confirmed"]:
     st.header("4. Optional: Apply Weights to Dimensions")
-    
+
     st.info(
         """
         **Optional step** — leave unchecked to continue with equal weighting across all dimensions.
@@ -596,35 +621,37 @@ if st.session_state["scores_confirmed"]:
         
         ℹ️ **Note:** *Data Quality is fixed and does not influence the weighting calculation.*
         """
-    )   
-    apply_weights = st.checkbox(
-        "Apply custom weights?", key="apply_weights" 
-    )  # widget key
-    st.caption(
-       "Weights are only applied if you change at least one slider."
     )
+    apply_weights = st.checkbox(
+        "Apply custom weights?", key="apply_weights"
+    )  # widget key
+    st.caption("Weights are only applied if you change at least one slider.")
     if apply_weights:
         weights = {}
         for dim in value_dimensions:
-            stars = int(scores.get(dim, 0) or 0) # get star rating 
-            
-            w_key = f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower()
+            stars = int(scores.get(dim, 0) or 0)  # get star rating
+
+            w_key = f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(
+                " ", "_"
+            ).lower()
             prev_key = f"prev_{w_key}"
-            
+
             w = st.slider(
                 f"{dim} Weight (0.0 - 1.0)",
                 0.0,
                 1.0,
-                1.0,  # Important: default = netral 
+                1.0,  # Important: default = netral
                 step=0.1,
                 key=w_key,
-                disabled=(stars == 0 or dim=="Data Quality"), # disables 0 star rating 
+                disabled=(
+                    stars == 0 or dim == "Data Quality"
+                ),  # disables 0 star rating
             )
             weights[dim] = w
-            
+
             # Deteck user interaction
             prev = st.session_state.get(prev_key, w)
-            if w !=prev:
+            if w != prev:
                 st.session_state["weights_touched"] = True
             st.session_state[prev_key] = w
     else:
@@ -648,33 +675,35 @@ if st.session_state.get("calculate_scores"):
     st.header("5. Valuation Score Summary")
 
     apply_weights = st.session_state.get("apply_weights", False)
-    
+
     # Build weights default 1.0
-    weights={
+    weights = {
         dim: float(
             st.session_state.get(
-                f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(" ", "_").lower(), 
+                f"weight_{dataset_sig}_{selected_use_case}_{dim}".replace(
+                    " ", "_"
+                ).lower(),
                 1.0,
             )
         )
         for dim in value_dimensions
     }
-    
+
     # Only treat weights as "applied" if the user actually changed something
-    weights_meaningful = any(weights[d] !=1.0 for d in value_dimensions)
+    weights_meaningful = any(weights[d] != 1.0 for d in value_dimensions)
     apply_effective_weights = apply_weights and weights_meaningful
 
     # -----------------------------
     # CASE A: No WEIGHTS, STAR only results
     # -----------------------------
-    # In this mode all value dimensions are treated equally 
-    # Data Quality is shown as Usability info but excluded from 
+    # In this mode all value dimensions are treated equally
+    # Data Quality is shown as Usability info but excluded from
     # the highest rated value dimension
     if not apply_effective_weights:
         total_stars = sum(scores.values())
         max_possible = len(value_dimensions) * 5
         final_score_percent = round((total_stars / max_possible) * 100, 2)
-        
+
         # Lock Data Quality dimension
         LOCKED_DIM = "Data Quality"
         dims_for_top = [dim for dim in value_dimensions if dim != LOCKED_DIM]
@@ -695,17 +724,17 @@ if st.session_state.get("calculate_scores"):
             "stars": {d: int(scores[d] or 0) for d in value_dimensions},
             "weights": {d: 1.0 for d in value_dimensions},
             "final_score_percent": float(final_score_percent),
-            "tags":[],
+            "tags": [],
         }
-        
+
         # Store payload so it can be saved only when the user clicks "save results"
         st.session_state["latest_payload"] = payload
 
-       # -----------------------------
-       # Display star-only outcome
-       # -----------------------------
-       # Shows - Highest rated value dimension(s)
-       # Data Quality separately shown as dataset Usability info
+        # -----------------------------
+        # Display star-only outcome
+        # -----------------------------
+        # Shows - Highest rated value dimension(s)
+        # Data Quality separately shown as dataset Usability info
         st.markdown(
             f""" 
             **Use Case:** {selected_use_case}  
@@ -736,7 +765,7 @@ if st.session_state.get("calculate_scores"):
         # apply_weights = True
         # weights_meaningful = True
         # weights dict with default 1.0 exist
-        
+
         # Lock Data Quality dimension - set Data Quality to 0
         LOCKED_DIM = "Data Quality"
         if LOCKED_DIM in value_dimensions:
@@ -751,33 +780,34 @@ if st.session_state.get("calculate_scores"):
         # -----------------------------
         # Compute value tags for saving
         # -----------------------------
-        # Tags represent the highest priority dimensions 
+        # Tags represent the highest priority dimensions
         # based on weighted scores
-        top_dimensions =[]
-        
+        top_dimensions = []
+
         if apply_effective_weights and st.session_state["weights_touched"]:
             if weighted_scores:
                 top_score = max(weighted_scores.values())
-                
+
                 if top_score > 0:
-                    top_dimensions=[
-                        dim for dim, val in weighted_scores.items()
-                        if val == top_score
+                    top_dimensions = [
+                        dim for dim, val in weighted_scores.items() if val == top_score
                     ]
-        # -----------------------------            
+        # -----------------------------
         # Continue with overall score calculations
         # -----------------------------
         total_score = sum(weighted_scores.values())
         max_possible = sum(5 * weights[dim] for dim in value_dimensions)
-        
-        #Prevent division by 0
+
+        # Prevent division by 0
         if max_possible == 0:
-            st.warning("All weights are set to 0, weighted score cannot be calculated."
-                       "Increase at least one weight above 0 to continue.")
+            st.warning(
+                "All weights are set to 0, weighted score cannot be calculated."
+                "Increase at least one weight above 0 to continue."
+            )
             st.stop()
-            
+
         final_score_percent = round((total_score / max_possible) * 100, 2)
-        
+
         # Top dimensions for display
         max_score = max(weighted_scores.values())
         top_dim = [dim for dim, val in weighted_scores.items() if val == max_score]
@@ -794,22 +824,21 @@ if st.session_state.get("calculate_scores"):
             "final_score_percent": float(final_score_percent),
             "tags": top_dimensions,
         }
-        
+
         # Store payload
         st.session_state["latest_payload"] = payload
-        
+
         # Display primary dimension with supporting interpretation text
         primary_dim = top_dim[0] if top_dim else None
         interpretation_texts = "\n\n".join(
-            interpretation_sentences.get(dim, "")
-            for dim in top_dim
+            interpretation_sentences.get(dim, "") for dim in top_dim
         )
-       # -----------------------------
-       # Display contextual outcome
-       # -----------------------------
-       # Shows - Where the datset delivers most value for this use case
-       # Interpretation of each top value dimension
-       # Breakdown of stars, weights, and weighted scores
+        # -----------------------------
+        # Display contextual outcome
+        # -----------------------------
+        # Shows - Where the datset delivers most value for this use case
+        # Interpretation of each top value dimension
+        # Breakdown of stars, weights, and weighted scores
         st.markdown(
             f"""
             **Use Case:** {selected_use_case}
@@ -822,8 +851,8 @@ if st.session_state.get("calculate_scores"):
             st.markdown("---")
             st.markdown(f"##### {dim}")
             st.markdown(explanation)
-            
-        st.markdown("---")    
+
+        st.markdown("---")
 
         weighted_df = pd.DataFrame(
             {
@@ -841,18 +870,22 @@ if st.session_state.get("calculate_scores"):
     # Prevents duplicate saves on reruns and ensure re calculations don't overwrite stored results
     st.divider()
     # Check if the current valuation has been saved
-    already_saved =(
-    st.session_state.get("latest_payload") is not None
-    and st.session_state.get("saved_submit_id") 
-    == st.session_state.get("latest_payload", {}).get("submit_id")
+    already_saved = st.session_state.get(
+        "latest_payload"
+    ) is not None and st.session_state.get("saved_submit_id") == st.session_state.get(
+        "latest_payload", {}
+    ).get(
+        "submit_id"
     )
     # Lock the feedback once completed
-    feedback_locked = already_saved or(st.session_state.get("feedback") is not None)
-    
-    # -----------------------------            
+    feedback_locked = already_saved or (st.session_state.get("feedback") is not None)
+
+    # -----------------------------
     # Show Graphs Section
-    # -----------------------------                    
-    st.info("Click **Show graph** to see how star rating and weights affect scores and priorities.")
+    # -----------------------------
+    st.info(
+        "Click **Show graph** to see how star rating and weights affect scores and priorities."
+    )
     # Show graphs
     if st.button("Show graphs"):
         st.subheader("Visualisation of Scores")
@@ -875,7 +908,8 @@ if st.session_state.get("calculate_scores"):
                 {
                     "Dimension": value_dimensions,
                     "Score": [
-                        round(float(scores.get(dim, 0) or 0), 2) for dim in value_dimensions
+                        round(float(scores.get(dim, 0) or 0), 2)
+                        for dim in value_dimensions
                     ],
                 }
             )
@@ -948,68 +982,69 @@ if st.session_state.get("calculate_scores"):
                     st.markdown(f"**{row['Dimension']}**:{row['Stars']}")
 
             # -----------------------------
-            # Tags - prioritised value dimentions
+            # Tags(Primary Value Dimension(s)) - prioritised value dimentions
             #
-            # Tags shown ONLY when weights are applied            
+            # Tags shown ONLY when weights are applied
             # If no weights - no tags shown, only the rating table / summary displayed
             # -----------------------------
-            
+
             if apply_effective_weights and st.session_state["weights_touched"]:
-                    
+
                 if top_dimensions:
-                    tags_html = "".join(f'<div class="oval-tag"> {dim}</div>' for dim in top_dimensions)
+                    tags_html = "".join(
+                        f'<div class="oval-tag"> {dim}</div>' for dim in top_dimensions
+                    )
                     st.markdown(
-                       f'## 🏷️ Tags <div class="tag-container">{tags_html}</div>',
-                       unsafe_allow_html=True,
+                        f'## 🔗 Primary Value Dimension(s) <div class="tag-container">{tags_html}</div>',
+                        unsafe_allow_html=True,
                     )
                 else:
-                    st.info("No tags to show (all weighted scores are 0).")
+                    st.info(
+                        "No primary value dimension to show (all weighted scores are 0)."
+                    )
             else:
-                st.info("Tags are shown when you apply weights.")
-                
-    # -----------------------------            
+                st.info("Primary value dimension(s) are shown when you apply weights.")
+
+    # -----------------------------
     # Feedback Section
     # -----------------------------
     if st.session_state.get("calculate_scores"):
         st.divider()
         st.header("Quick Feedback - 30 seconds")
-        
+
         with st.form("feedback_form"):
             question1 = st.radio(
                 "1. Was the Tool easy to use?",
                 ["Very easy", "Easy", "Neutral", "Difficult"],
-                disabled=feedback_locked
+                disabled=feedback_locked,
             )
             question2 = st.radio(
                 "2. Did the Score reflect your perception of the dataset's value?",
                 ["Yes", "Mostly", "Not sure", "No"],
-                disabled=feedback_locked
+                disabled=feedback_locked,
             )
             question3 = st.radio(
                 "3. Would you use this Tool again?",
                 ["Yes", "Maybe", "No"],
-                disabled=feedback_locked
+                disabled=feedback_locked,
             )
-            comment = st.text_area(
-                "Optional comments",
-                disabled=feedback_locked
-            )
-            
+            comment = st.text_area("Optional comments", disabled=feedback_locked)
+
             feedback_submitted = st.form_submit_button(
                 "Submitted" if feedback_locked else "Submit Feedback",
-                disabled=feedback_locked
-                )
+                disabled=feedback_locked,
+            )
 
             if feedback_submitted:
                 st.session_state["feedback"] = {
-                    "feedback_q1":question1,
+                    "feedback_q1": question1,
                     "feedback_q2": question2,
                     "feedback_q3": question3,
-                    "feedback_comment": comment
+                    "feedback_comment": comment,
                 }
                 st.success("Thank you for your feedback! Now you can Save Results")
                 st.rerun()
-    # -----------------------------            
+    # -----------------------------
     # Save Results Section
     # -----------------------------
 
@@ -1017,28 +1052,28 @@ if st.session_state.get("calculate_scores"):
     if already_saved:
         st.success("Results saved successfully!")
     else:
-        st.info("When you're happy with the results, click **Save Results** to store them.")
-    
+        st.info(
+            "When you're happy with the results, click **Save Results** to store them."
+        )
+
     # Button before save "Save Results" and after - "Saved"
     button_label = "Saved" if already_saved else "Save Results"
- 
+
     if st.button(button_label, disabled=already_saved):
         payload = st.session_state.get("latest_payload")
         if not payload:
             st.warning("No results to save yet.")
         else:
             payload["created_at"] = datetime.now(timezone.utc).isoformat()
-            
+
             feedback = st.session_state.get("feedback")
-            
+
             if feedback:
                 payload.update(feedback)
             try:
                 save_valuation(payload)
                 st.session_state["saved_submit_id"] = payload["submit_id"]
                 st.success("Results saved successfully!")
-                st.rerun() #refresh UI to get button disabled
+                st.rerun()  # refresh UI to get button disabled
             except Exception as e:
-                st.error(f"Couldn't save results to the database: {e}")           
-            
-    
+                st.error(f"Couldn't save results to the database: {e}")
