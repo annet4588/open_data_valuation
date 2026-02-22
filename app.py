@@ -57,19 +57,19 @@ if st.session_state["show_guide"]:
         st.markdown(
             """
 ### What this tool does
-This tool helps you understand the value of an open dataset for decision-making.  
+This tool helps you assess how an open dataset delivers value for decision-making within a specific use case.  
 
 ---
 
 # How star ratings and weights work together
 
 ### Star ratings (required)
-- Stars show **how strong** the dataset is in each area (0-5).
-- They reflect the **quality** or **usefulness** of the data and never change.
+- Stars show **how strong** the dataset is in each value dimension (0-5).
+- They reflect the dataset characteristics and remain constant.
 
 ### Weights (optional)
 - Weights let you highlight what **matters most** for your use case.
-- They do not change star ratings — they only **affect ranking** and **value tags**.
+- They do not change star ratings — they influence how value is **prioritised**.
 
 ---
 
@@ -79,7 +79,7 @@ This tool helps you understand the value of an open dataset for decision-making.
 - You **cannot apply** weights to dimensions rated **0 stars**
 - **Data Quality** is treated as a foundational requirement and is **not influenced by weights**
 
-This keeps results clear and avoids accidental prioritisation.
+This ensures Usability does not override Contextual Value.
 
 ---
 
@@ -90,7 +90,7 @@ When you change one or more weights:
 - Higher weighted scores **appear higher** in the results
 - A **high-star** dimension can **move down** if its weight is **low**
 
-Value tags are created based on these weighted scores.
+Primary value dimensions are identified based on these weighted scores.
 
 ---
 
@@ -105,12 +105,12 @@ Leave weights unchanged for a neutral, balanced view.
 
 ---
 
-# Value tags
-- Value tags appear **only when you apply weights**
-- They **highlight** the dataset's **main priority value**, based on what you chose to emphasise
-- If you **don't apply** weights, **no value** tags are shown
+# Primary Value Dimensions
+- Primary value dimensions appear **only when you apply weights**
+- They **highlight** where the dataset **delivers the most value** for the **selected use case**.
+- If weights are **not applied**, the tool **displays** the highest-rated dimensions instead
 
-Value tags are designed to help users quickly see **where a dataset delivers the most value for decision-making**.
+Primary value dimensions are designed to **help users** quickly understand the dataset's **strongest contribution** in context.
 
 ---
 # Evidence base    
@@ -154,8 +154,8 @@ If you **don't change** any weight, results stay **star-based**.
 Click **Calculate Scores** to see the overall value score and breakdown.  
 Click **Show graphs** to explore the results visually.
 
-**Value Tags**  
-Value tags appear **only when weights are applied**.  
+**Primary value dimensions**  
+Primary value dimensions appear **only when weights are applied**.  
 They show which dimension matters most to your use case.
 
 **Remember:**  
