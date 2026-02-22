@@ -248,6 +248,26 @@ tooltips = {
         ) ,
 }
 
+# Explanation Sentences for Each Dimension to make it clear for the user
+interpretation_sentences ={
+    "Economic": (
+        "This indicates that the dataset's strongest value for this use case lies in informing economic decisions, resource allocation, or financial efficiency."
+    ),
+    "Social":(
+        "This indicates that the dataset's strongest value for this use case lies in its contribution to social outcomes, community wellbeing, or public benefit."
+    ),
+    "Environmental": (
+        "This indicates that the dataset's strongest value for this use case lies in supporting environmental monitoring, sustainability, or environmental decision-making."
+    ),
+    "Cultural": (
+        "This indicates that the dataset's strongest value for this use case lies in supporting cultural understanding, heritage, identity, or community engagement."
+    ),
+    "Policy Alignment": (
+        "This indicates that the dataset's strongest value for this use case lies in supporting policy objectives, statutory duties, or structured planning and performance monitoring."
+    )
+    
+}
+
 # -----------------------------
 # Helpers
 # -----------------------------
@@ -756,14 +776,28 @@ if st.session_state.get("calculate_scores"):
         
         # Store payload
         st.session_state["latest_payload"] = payload
+        
+        # Display primary dimension with supporting interpretation text
+        primary_dim = top_dim[0] if top_dim else None
+        interpretation_texts = "\n\n".join(
+            interpretation_sentences.get(dim, "")
+            for dim in top_dim
+        )
 
         st.markdown(
             f"""
-            **Weighted Valuation Score:** {final_score_percent}%  
-            **Top Score Dimension(s):** {top_dim_str}  
             **Use Case:** {selected_use_case}
+
+            **Where this dataset delivers most value:** {", ".join(top_dim)}
             """
         )
+        for dim in top_dim:
+            explanation = interpretation_sentences.get(dim, "")
+            st.markdown("---")
+            st.markdown(f"##### {dim}")
+            st.markdown(explanation)
+            
+        st.markdown("---")    
 
         weighted_df = pd.DataFrame(
             {
@@ -981,3 +1015,4 @@ if st.session_state.get("calculate_scores"):
             except Exception as e:
                 st.error(f"Couldn't save results to the database: {e}")           
             
+    
