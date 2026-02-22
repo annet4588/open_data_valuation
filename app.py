@@ -77,6 +77,7 @@ This tool helps you understand the value of an open dataset for decision-making.
 - Weights only apply if you **change at least one** slider
 - If all weights **stay at 1**, results remain **star-based**
 - You **cannot apply** weights to dimensions rated **0 stars**
+- **Data Quality** is treated as a foundational requirement and is **not influenced by weights**
 
 This keeps results clear and avoids accidental prioritisation.
 
@@ -572,6 +573,8 @@ if st.session_state["scores_confirmed"]:
         **Optional step** — leave unchecked to continue with equal weighting across all dimensions.
        
         When you're finished scoring, click **Calculate Scores** to proceed.
+        
+        ℹ️ **Note:** *Data Quality is fixed and does not influence the weighting calculation.*
         """
     )   
     apply_weights = st.checkbox(
@@ -595,7 +598,7 @@ if st.session_state["scores_confirmed"]:
                 1.0,  # Important: default = netral 
                 step=0.1,
                 key=w_key,
-                disabled=(stars == 0), # disables 0 star rating 
+                disabled=(stars == 0 or dim=="Data Quality"), # disables 0 star rating 
             )
             weights[dim] = w
             
@@ -693,6 +696,12 @@ if st.session_state.get("calculate_scores"):
         # apply_weights = True
         # weights_meaningful = True
         # weights dict with default 1.0 exist
+        
+        # Lock Data Quality dimension
+        LOCKED_DIM = "Data Quality"
+        if LOCKED_DIM in value_dimensions:
+            # scores[LOCKED_DIM] = 0
+            weights[LOCKED_DIM] = 0
 
         # Calculated weighted score for each dimension (stars * weight)
         weighted_scores = {
