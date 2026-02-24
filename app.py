@@ -611,11 +611,17 @@ if not st.session_state["scores_confirmed"]:
 # 4. OPTIONAL WEIGHTING
 # -----------------------------
 if st.session_state["scores_confirmed"]:
-    st.header("4. Optional: Apply Weights to Dimensions")
+    st.header("4. Apply Weights to Reflect Priorities")
 
     st.info(
         """
-        **Optional step** — leave unchecked to continue with equal weighting across all dimensions.
+        This step allows you to prioritise what matters most for the selected use case.    
+       
+        **Apply weights** if you want to:  
+        - Reflect organisational or operational priorities 
+        - Identify the **Primary value dimension** in context  
+        
+        If you leave all weights equal - the result will show a **Neutral value profile**.
        
         When you're finished scoring, click **Calculate Scores** to proceed.
         
