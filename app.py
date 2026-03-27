@@ -67,7 +67,7 @@ This tool helps you assess how an open dataset delivers value for decision-makin
 - Stars show **how strong** the dataset is in each value dimension (0-5).
 - They reflect the dataset characteristics and remain constant.
 
-### Weights (optional)
+### Weights (required for contextual value assessment)
 - Weights let you highlight what **matters most** for your use case.
 - They do not change star ratings — they influence how value is **prioritised**.
 
@@ -145,7 +145,7 @@ Select the **option** that best matches how the dataset will be used.
 Give a rating for each dimension (Economic, Social, Environmental, Cultural, Policy Alignment, Data Quality).  
 Use **Reset** to clear a single dimension or **Update Scores** to reset all.
 
-**Step 4 — Optional: Apply weights**  
+**Step 4 — Apply weights**  
 Tick **Apply custom weights** if some dimensions matter more than others for your use case.  
 Weights range from **0.0 (less important)** to **1.0 (normal importance)**.  
 If you **don't change** any weight, results stay **star-based**.
@@ -643,7 +643,7 @@ if st.session_state["scores_confirmed"]:
             prev_key = f"prev_{w_key}"
 
             w = st.slider(
-                f"{dim} Weight (0.0 - 1.0)",
+                f"{dim} Priority Weight",
                 0.0,
                 1.0,
                 1.0,  # Important: default = netral
@@ -652,7 +652,9 @@ if st.session_state["scores_confirmed"]:
                 disabled=(
                     stars == 0 or dim == "Data Quality"
                 ),  # disables 0 star rating
+                help="0.0 = low, 1.0 = highest priority. This does not change the star score."
             )
+            st.caption(f"Scale: 0.0 = low priority | 1.0 = highest priority | Selected: {int(w*100)}%")
             weights[dim] = w
 
             # Deteck user interaction
