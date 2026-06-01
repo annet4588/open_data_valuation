@@ -11,3 +11,4 @@ env/
 .streamlit/secrets.toml
 
 environment.yml
+/documentation/
